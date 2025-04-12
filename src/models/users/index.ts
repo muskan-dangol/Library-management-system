@@ -13,15 +13,15 @@ const getAllUsers = async (): Promise<UserType[]> => {
   return db("user").select("*");
 };
 
-const updateUser = (id: string, reqPayload: Partial<UserType>): Promise<UserType> => {
-  return db("user").where({ id: id }).update(reqPayload);
+const updateUser = async(id: string, reqPayload: Partial<UserType>): Promise<void> => {
+  await db("user").where({ id: id }).update(reqPayload);
 };
 
-const deleteUser = (userId: string): Promise<UserType> => {
-  return db("user").where({ id: userId }).delete();
+const deleteUser = async(userId: string): Promise<void> => {
+  await db("user").where({ id: userId }).delete();
 };
 
-const getUserById = (id: string): Promise<Omit<UserType, 'password'>> => {
+const getUserById = (id: string): Promise<Omit<UserType, 'password'> | undefined> => {
   return db("user")
     .select("id", "email", "firstname", "lastname", "is_admin", "created_on")
     .where({ id })
@@ -32,7 +32,7 @@ const getUserByEmail = (email: string): Promise<UserType> => {
   return db("user").select().where({ email }).first();
 };
 
-const isEmailExists = async (email: string) => {
+const isEmailExists = async (email: string): Promise<boolean> => {
   const data = await getUserByEmail(email);
   return !!data
 };

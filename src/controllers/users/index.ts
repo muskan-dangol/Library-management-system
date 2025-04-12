@@ -18,6 +18,7 @@ const getUserById = async (req: Request, res: Response, next: NextFunction) => {
     const user = await User.getUserById(userId);
     if (!user) {
       res.status(404).json({ error: "User not found" });
+      return;
     }
     res.status(200).json(user);
   } catch (error) {
@@ -35,8 +36,15 @@ const createUser = async (
 
     if (!(email && firstname && lastname && password)) {
       res.status(400).json({ error: "All fields are required" });
+      return;
     }
 
+    if (password.length < 8) {
+      res.status(400).json({
+        error: "Password must be at least 8 characters long",
+      });
+      return;
+    }
     const hashedPassword = await getHashedPassword(password);
 
     await User.createUser({
@@ -61,6 +69,7 @@ const updateUser = async (req: Request, res: Response, next: NextFunction) => {
     const userExists = await User.getUserById(userId);
     if (!userExists) {
       res.status(404).json({ error: "User not found" });
+      return;
     }
 
     await User.updateUser(userId, payload);
@@ -78,6 +87,7 @@ const deleteUser = async (req: Request, res: Response, next: NextFunction) => {
     const userExists = await User.getUserById(userId);
     if (!userExists) {
       res.status(404).json({ error: "User not found" });
+      return;
     }
 
     await User.deleteUser(userId);
@@ -88,10 +98,4 @@ const deleteUser = async (req: Request, res: Response, next: NextFunction) => {
   }
 };
 
-export {
-  getAllUsers,
-  getUserById,
-  createUser,
-  updateUser,
-  deleteUser,
-};
+export { getAllUsers, getUserById, createUser, updateUser, deleteUser };

@@ -29,7 +29,9 @@ export async function up(knex: Knex): Promise<void> {
       available INTEGER,
       short_description TEXT,
       long_description TEXT,
-      created_on TIMESTAMPTZ(0) NOT NULL DEFAULT NOW()
+      image TEXT,
+      created_on TIMESTAMPTZ(0) NOT NULL DEFAULT NOW(),
+      UNIQUE (title, image)
     );
   `);
 

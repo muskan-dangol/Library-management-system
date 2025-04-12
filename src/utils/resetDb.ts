@@ -1,13 +1,18 @@
 import db from "../database/db";
 
 const resetUsers = async (): Promise<void> => {
-  await db("user").del('*')
+  await db("user").del("*");
 };
 
-export const resetDb = async()=>{
-  await resetUsers()
-}
+const resetBooks = async (): Promise<void> => {
+  await db("book").del("*");
+};
 
-export const destroyDb = async()=>{
-  await db.destroy()
-}
+export const resetDb = async () => {
+  await resetUsers();
+  await resetBooks();
+};
+
+export const destroyDb = async () => {
+  await db.destroy();
+};

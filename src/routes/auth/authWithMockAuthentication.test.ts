@@ -27,7 +27,6 @@ describe("Auth endpoints", () => {
 
       expect(res.statusCode).toEqual(500);
       expect(res.body.error).toEqual(errorMessage);
-      console.log(errorMessage);
     });
 
     it("should create login successfully and return token", async () => {
@@ -44,7 +43,7 @@ describe("Auth endpoints", () => {
         email: "musn@gmail.com",
         password: "muskyyy",
       });
-      // console.log("res", res);
+
       expect(res.statusCode).toEqual(200);
       expect(res.body).toMatchObject({
         token: expect.any(String),
