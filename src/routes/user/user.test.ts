@@ -96,7 +96,7 @@ describe("User endpoints test", () => {
   });
 
   describe("User - GET /api/users/:userId", () => {
-    it("should return error with 400 when the user does not exist", async () => {
+    it("should return error with 404 when the user does not exist", async () => {
       const nonExistingUserId = "123e4567-e89b-12d3-a456-426614174000";
       const res = await request(server).get(`/api/users/${nonExistingUserId}`);
 

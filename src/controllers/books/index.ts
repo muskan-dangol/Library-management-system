@@ -92,6 +92,7 @@ const updateBookById = async (
 
     if (!bookExists) {
       res.status(404).json({ error: "Book not found!" });
+      return;
     }
     await Book.updateBook(bookId, payload);
     res.status(200).json({ data: "Book updated successfully!" });
@@ -112,6 +113,7 @@ const deleteBookById = async (
 
     if (!bookExists) {
       res.status(404).json({ error: "Book not found!" });
+      return;
     }
     await Book.deleteBookById(bookId);
     res.status(200).json({ date: "Book deleted successfully!" });
