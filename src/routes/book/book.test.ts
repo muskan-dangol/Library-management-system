@@ -2,6 +2,7 @@ import request from "supertest";
 import server from "../../index";
 import { destroyDb, resetDb } from "../../utils/resetDb";
 import Book from "../../models/books";
+import Category from "../../models/categories";
 
 const testBookPayload = {
   title: "test book",
@@ -12,14 +13,21 @@ const testBookPayload = {
   long_description: "This long description",
 };
 
+const testCategoryPayload = {
+  name: "Fiction",
+};
+
 describe("Book endpoints test", () => {
   let testBookId: string;
+  let categoryId: string;
 
   beforeAll(async () => {
     server.listen(0);
     await resetDb();
+    const [category] = await Category.addNewCategory(testCategoryPayload);
     const addedBook = await Book.addNewBook(testBookPayload);
 
+    categoryId = category.id;
     testBookId = addedBook[0].id;
   });
 
@@ -57,10 +65,11 @@ describe("Book endpoints test", () => {
       const res = await request(server).post("/api/books").send({
         title: "Book3",
         author: "Muskan",
-        release_date: "2021-01-01",
-        available: "20",
+        release_date: "2021-01-01T00:00:00.000Z",
+        available: 20,
         short_description: "This short description",
         long_description: "This long description",
+        category_id: categoryId,
       });
 
       expect(res.statusCode).toEqual(201);
@@ -181,6 +190,42 @@ describe("Book endpoints test", () => {
 
       const bookAfterDelete = await Book.getBookById(testBookId);
       expect(bookAfterDelete).not.toBeDefined();
+    });
+  });
+
+  describe("Books - GET /api/books/category/:categoryId", () => {
+    it("should return 404 when the category does not exist", async () => {
+      const nonExistingCategoryId = "123e4567-e89b-12d3-a456-426614174000";
+      const res = await request(server).get(
+        `/api/books/category/${nonExistingCategoryId}`
+      );
+
+      expect(res.statusCode).toEqual(404);
+      expect(res.body).toEqual({ error: "Category not found!" });
+    });
+
+    it("should return book by category ID", async () => {
+      const res = await request(server).get(
+        `/api/books/category/${categoryId}`
+      );
+
+      expect(res.statusCode).toEqual(200);
+      expect(res.body).toEqual([
+        expect.objectContaining({
+          id: expect.any(String),
+          title: expect.any(String),
+          author: expect.any(String),
+          release_date: expect.any(String),
+          available: expect.any(Number),
+          short_description: expect.any(String),
+          long_description: expect.any(String),
+          image: null,
+          created_on: expect.any(String),
+          book_id: expect.any(String),
+          category_id: categoryId,
+          name: testCategoryPayload.name,
+        })
+      ]);
     });
   });
 });

@@ -1,5 +1,7 @@
 import { Request, Response, NextFunction } from "express";
 import Book from "../../models/books";
+import Category from "../../models/categories";
+import BookCategory from "../../models/book_catagories";
 
 const getAllBooks = async (req: Request, res: Response, next: NextFunction) => {
   try {
@@ -34,6 +36,8 @@ const addNewBook = async (
   next: NextFunction
 ): Promise<void> => {
   try {
+    const { category_id, ...bookPayload } = req.body;
+
     const {
       title,
       author,
@@ -42,7 +46,7 @@ const addNewBook = async (
       short_description,
       long_description,
       image,
-    } = req.body;
+    } = bookPayload;
 
     if (
       !(
@@ -64,7 +68,7 @@ const addNewBook = async (
       return;
     }
 
-    await Book.addNewBook({
+    const [createdBook] = await Book.addNewBook({
       title,
       author,
       release_date,
@@ -73,6 +77,12 @@ const addNewBook = async (
       short_description,
       long_description,
     });
+
+    await BookCategory.addBookCategory({
+      book_id: createdBook?.id,
+      category_id,
+    });
+
     res.status(201).json({ data: "Book added successfully!" });
   } catch (error) {
     next(error);
@@ -122,4 +132,33 @@ const deleteBookById = async (
   }
 };
 
-export { getAllBooks, getBookById, addNewBook, updateBookById, deleteBookById };
+const getBookByCategoryId = async (
+  req: Request,
+  res: Response,
+  next: NextFunction
+) => {
+  try {
+    const { categoryId } = req.params;
+
+    const categoryExists = await Category.getCategoryById(categoryId);
+
+    if (!categoryExists) {
+      res.status(404).json({ error: "Category not found!" });
+      return;
+    }
+    
+    const books = await Book.getBookByCategoryId(categoryId);
+    res.status(200).json(books);
+  } catch (error) {
+    next(error);
+  }
+};
+
+export {
+  getAllBooks,
+  getBookById,
+  addNewBook,
+  updateBookById,
+  deleteBookById,
+  getBookByCategoryId,
+};

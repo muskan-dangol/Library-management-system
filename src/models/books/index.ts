@@ -28,6 +28,14 @@ const deleteBookById = async(bookId: string): Promise<void> => {
   await db("book").where({ id: bookId }).delete();
 };
 
+const getBookByCategoryId = async (categoryId: string): Promise<BookType[]> => {
+  return db("book")
+    .select("*")
+    .join("book_category", "book.id", "book_category.book_id")
+    .join("category", "book_category.category_id", "category.id")
+    .where("category.id", categoryId);
+};
+
 export default {
   addNewBook,
   getAllBooks,
@@ -35,4 +43,5 @@ export default {
   getBookByTitle,
   updateBook,
   deleteBookById,
+  getBookByCategoryId,
 };
