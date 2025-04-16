@@ -39,12 +39,20 @@ const createUser = async (
       return;
     }
 
+    const userExists = await User.isEmailExists(email);
+
+    if (userExists) {
+      res.status(400).json({ error: "user already exists!" });
+      return;
+    }
+
     if (password.length < 8) {
       res.status(400).json({
         error: "Password must be at least 8 characters long",
       });
       return;
     }
+
     const hashedPassword = await getHashedPassword(password);
 
     await User.createUser({

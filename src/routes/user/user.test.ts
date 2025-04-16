@@ -53,6 +53,18 @@ describe("User endpoints test", () => {
       });
     });
 
+    it("should not add user when used existing email", async () => {
+      const res = await request(server).post("/api/users").send({
+        email: "test@example.com",
+        firstname: "John",
+        lastname: "Doe",
+        password: "password123",
+      });
+
+      expect(res.statusCode).toEqual(400);
+      expect(res.body).toEqual({ error: "user already exists!" });
+    });
+
     it("should add a new user successfully", async () => {
       const res = await request(server).post("/api/users").send({
         email: "test2@gmail.com",
@@ -169,4 +181,3 @@ describe("User endpoints test", () => {
     });
   });
 });
-
