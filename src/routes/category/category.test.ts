@@ -141,12 +141,20 @@ describe("Category endpoints test", () => {
     });
 
     it("should delete a category by ID", async () => {
+      const categoryBeforeDelete =
+        await Category.getCategoryById(testCategoryId);
+      expect(categoryBeforeDelete).toBeDefined();
+
       const res = await request(server).delete(
         `/api/categories/${testCategoryId}`
       );
 
       expect(res.statusCode).toEqual(200);
       expect(res.body).toEqual({ message: "category deleted successfully!" });
+
+      const categoryAfterDelete =
+        await Category.getCategoryById(testCategoryId);
+      expect(categoryAfterDelete).not.toBeDefined();
     });
   });
 });
