@@ -6,6 +6,7 @@ import { router as bookRouter } from "./book";
 import { router as categoryRouter } from "./category";
 import { router as cartRouter } from "./cart";
 import { router as cartItemRouter } from "./cart_item";
+import { router as reviewRouter } from "./review";
 
 const router = express.Router();
 
@@ -21,5 +22,6 @@ router.use("/books", bookRouter);
 router.use("/categories", categoryRouter);
 router.use("/cart", cartRouter);
 router.use("/cart-item", cartItemRouter);
+router.use("/reviews", reviewRouter);
 
 export default router;
