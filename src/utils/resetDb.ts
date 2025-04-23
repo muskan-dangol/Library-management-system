@@ -20,12 +20,17 @@ const resetCartItem = async (): Promise<void> => {
   await db("cart_item").del("*");
 };
 
+const resetReply = async (): Promise<void> => {
+  await db("reply").del("*");
+};
+
 export const resetDb = async () => {
   await resetUsers();
   await resetBooks();
   await reserCategories();
   await resetCart();
   await resetCartItem();
+  await resetReply();
 };
 
 export const destroyDb = async () => {
