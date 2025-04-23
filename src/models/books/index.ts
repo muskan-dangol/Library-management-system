@@ -24,13 +24,27 @@ const updateBook = async (
   await db("book").where({ id: bookId }).update(reqpayload);
 };
 
-const deleteBookById = async(bookId: string): Promise<void> => {
+const deleteBookById = async (bookId: string): Promise<void> => {
   await db("book").where({ id: bookId }).delete();
 };
 
-const getBookByCategoryId = async (categoryId: string): Promise<BookType[]> => {
+const getBooksByCategoryId = async (
+  categoryId: string
+): Promise<BookType[]> => {
   return db("book")
-    .select("*")
+    .select(
+      "book.title",
+      "book.author",
+      "book.release_date",
+      "book.available",
+      "book.short_description",
+      "book.long_description",
+      "book.image",
+      "book.created_on",
+      "category.name",
+      "book_category.book_id",
+      "book_category.category_id"
+    )
     .join("book_category", "book.id", "book_category.book_id")
     .join("category", "book_category.category_id", "category.id")
     .where("category.id", categoryId);
@@ -43,5 +57,5 @@ export default {
   getBookByTitle,
   updateBook,
   deleteBookById,
-  getBookByCategoryId,
+  getBooksByCategoryId,
 };

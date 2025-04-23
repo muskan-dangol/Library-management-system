@@ -1,13 +1,13 @@
 import { Request, Response, NextFunction } from "express";
 import Category from "../../models/categories";
 
-const getAllCategory = async (
+const getAllCategories = async (
   req: Request,
   res: Response,
   next: NextFunction
 ) => {
   try {
-    const categories = await Category.getAllCategory();
+    const categories = await Category.getAllCategories();
 
     res.status(200).json(categories);
   } catch (error) {
@@ -111,7 +111,7 @@ const deleteCategory = async (
 };
 
 export {
-  getAllCategory,
+  getAllCategories,
   getCategoryById,
   addNewCategory,
   updateCategory,

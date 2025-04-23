@@ -7,7 +7,7 @@ const addNewCategory = (
   return db("category").insert(reqpayload).returning("*");
 };
 
-const getAllCategory = (): Promise<categoryType[]> => {
+const getAllCategories = (): Promise<categoryType[]> => {
   return db("category").select("*");
 };
 
@@ -36,7 +36,7 @@ const getCategoryByName = async (
 
 export default {
   addNewCategory,
-  getAllCategory,
+  getAllCategories,
   getCategoryById,
   updateCategory,
   deleteCategory,

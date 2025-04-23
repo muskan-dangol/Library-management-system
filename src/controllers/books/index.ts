@@ -132,7 +132,7 @@ const deleteBookById = async (
   }
 };
 
-const getBookByCategoryId = async (
+const getBooksByCategoryId = async (
   req: Request,
   res: Response,
   next: NextFunction
@@ -147,7 +147,7 @@ const getBookByCategoryId = async (
       return;
     }
     
-    const books = await Book.getBookByCategoryId(categoryId);
+    const books = await Book.getBooksByCategoryId(categoryId);
     res.status(200).json(books);
   } catch (error) {
     next(error);
@@ -160,5 +160,5 @@ export {
   addNewBook,
   updateBookById,
   deleteBookById,
-  getBookByCategoryId,
+  getBooksByCategoryId,
 };
