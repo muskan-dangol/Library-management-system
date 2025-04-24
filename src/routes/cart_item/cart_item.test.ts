@@ -1,6 +1,7 @@
 import request from "supertest";
 import server from "../../index";
 import { destroyDb, resetDb } from "../../utils/resetDb";
+import Cart from "../../models/carts";
 import CartItem from "../../models/cart_items";
 import User from "../../models/users";
 import Book from "../../models/books";
@@ -35,8 +36,8 @@ describe("Cart Item endpoints test", () => {
   let testUserId: string;
   let testBookId: string;
   let testBookId2: string;
-  let testCartItemId: string;
-  let testCartItem: CartItemType;
+  let testCartId: string;
+  let testCartItem: CartItemType[];
 
   beforeAll(async () => {
     server.listen(0);
@@ -50,13 +51,15 @@ describe("Cart Item endpoints test", () => {
     testBookId = addTestBook.id;
     testBookId2 = addTestBook2.id;
 
-    [testCartItem] = await CartItem.addCartItem({
-      user_id: testUserId,
+    const [addCart] = await Cart.addCart(testUserId);
+
+    testCartId = addCart.id;
+
+    testCartItem = await CartItem.addCartItem({
+      cart_id: testCartId,
       book_id: testBookId,
       quantity: 1,
     });
-
-    testCartItemId = testCartItem.id;
   });
 
   afterAll(async () => {
@@ -64,42 +67,47 @@ describe("Cart Item endpoints test", () => {
     server.close();
   });
 
-  describe("Cart Item - POST /api/cart-item", () => {
+  describe("Cart Item - POST /api/cart-items", () => {
     it("should not add item to cart when the user is unregistered", async () => {
-      const res = await request(server).post("/api/cart-item").send({
-        user_id: "",
+      const res = await request(server).post("/api/cart-items").send({
+        cart_id: "",
         book_id: testBookId,
       });
 
       expect(res.statusCode).toEqual(400);
-      expect(res.body).toEqual({
-        error: "signUp before adding items in cart!",
-      });
+      expect(res.body).toEqual({ error: "cart id is required!" });
     });
 
     it("should not add item to cart when the book is missing", async () => {
-      const res = await request(server).post("/api/cart-item").send({
-        user_id: testUserId,
+      const res = await request(server).post("/api/cart-items").send({
+        cart_id: testCartId,
         book_id: "",
       });
 
       expect(res.statusCode).toEqual(400);
-      expect(res.body).toEqual({ error: "book not found!" });
+      expect(res.body).toEqual({ error: "book id is required!" });
     });
 
     it("should update the existing cart item if item already exists in cart", async () => {
-      const res = await request(server).post("/api/cart-item").send({
-        user_id: testUserId,
+      const cartItemsCountBefore =
+        await CartItem.getCartItemByBookId(testBookId);
+      expect(cartItemsCountBefore?.quantity).toEqual(1);
+
+      const res = await request(server).post("/api/cart-items").send({
+        cart_id: testCartId,
         book_id: testBookId,
       });
 
       expect(res.statusCode).toEqual(200);
-      expect(res.body).toEqual(2);
+
+      const cartItemsCountAfter =
+        await CartItem.getCartItemByBookId(testBookId);
+      expect(cartItemsCountAfter?.quantity).toEqual(2);
     });
 
     it("should add a item to cart", async () => {
-      const res = await request(server).post("/api/cart-item").send({
-        user_id: testUserId,
+      const res = await request(server).post("/api/cart-items").send({
+        cart_id: testCartId,
         book_id: testBookId2,
       });
 
@@ -108,23 +116,21 @@ describe("Cart Item endpoints test", () => {
     });
   });
 
-  describe("Cart Item - GET /api/cart-item", () => {
+  describe("Cart Item - GET /api/cart-items", () => {
     it("should get all the cart items", async () => {
-      const res = await request(server).get("/api/cart-item");
+      const res = await request(server).get("/api/cart-items");
 
       expect(res.statusCode).toEqual(200);
       expect(res.body).toEqual([
         expect.objectContaining({
-          id: testCartItemId,
-          user_id: testUserId,
+          cart_id: testCartId,
           book_id: testBookId,
           quantity: 2,
           created_on: expect.any(String),
           updated_on: expect.any(String),
         }),
         expect.objectContaining({
-          id: expect.any(String),
-          user_id: testUserId,
+          cart_id: testCartId,
           book_id: testBookId2,
           quantity: 1,
           created_on: expect.any(String),
@@ -134,39 +140,11 @@ describe("Cart Item endpoints test", () => {
     });
   });
 
-  describe("Cart Item - GET /api/cart-item/:cartItemId", () => {
-    it("should return 404 when a cart item is not found", async () => {
-      const nonExistingCartItemId = "6f6f91a6-dbf9-4b5a-93c3-c09b3b8b798a";
-      const res = await request(server).get(
-        `/api/cart-item/${nonExistingCartItemId}`
-      );
-
-      expect(res.statusCode).toEqual(404);
-      expect(res.body).toEqual({ error: "cart item not found!" });
-    });
-
-    it("should return cart item", async () => {
-      const res = await request(server).get(`/api/cart-item/${testCartItemId}`);
-
-      expect(res.statusCode).toEqual(200);
-      expect(res.body).toEqual(
-        expect.objectContaining({
-          id: testCartItemId,
-          user_id: testUserId,
-          book_id: testBookId,
-          quantity: 2,
-          created_on: expect.any(String),
-          updated_on: expect.any(String),
-        })
-      );
-    });
-  });
-
-  describe("Cart Item - GET /api/cart-item/book/:bookId", () => {
+  describe("Cart Item - GET /api/cart-items/:bookId", () => {
     it("should return 404 when a book is not found in cart", async () => {
-      const nonExistingCartItemId = "6f6f91a6-dbf9-4b5a-93c3-c09b3b8b798a";
+      const nonExistingBookId = "6f6f91a6-dbf9-4b5a-93c3-c09b3b8b798a";
       const res = await request(server).get(
-        `/api/cart-item/book/${nonExistingCartItemId}`
+        `/api/cart-items/${nonExistingBookId}`
       );
 
       expect(res.statusCode).toEqual(404);
@@ -174,15 +152,12 @@ describe("Cart Item endpoints test", () => {
     });
 
     it("should return cart item with book Id", async () => {
-      const res = await request(server).get(
-        `/api/cart-item/book/${testBookId}`
-      );
+      const res = await request(server).get(`/api/cart-items/${testBookId}`);
 
       expect(res.statusCode).toEqual(200);
       expect(res.body).toEqual(
         expect.objectContaining({
-          id: testCartItemId,
-          user_id: testUserId,
+          cart_id: testCartId,
           book_id: testBookId,
           quantity: 2,
           created_on: expect.any(String),
@@ -192,11 +167,11 @@ describe("Cart Item endpoints test", () => {
     });
   });
 
-  describe("Cart Item - PATCH /api/cart-item/:cartItemId", () => {
+  describe("Cart Item - PATCH /api/cart-items/:bookId", () => {
     it("should return 404 when cart item does not exist", async () => {
-      const nonExistingCartItemId = "6f6f91a6-dbf9-4b5a-93c3-c09b3b8b798a";
+      const nonExistingBookId = "6f6f91a6-dbf9-4b5a-93c3-c09b3b8b798a";
       const res = await request(server)
-        .get(`/api/cart-item/${nonExistingCartItemId}`)
+        .patch(`/api/cart-items/${nonExistingBookId}`)
         .send({
           quantity: 2,
         });
@@ -207,27 +182,27 @@ describe("Cart Item endpoints test", () => {
 
     it("should update cart item", async () => {
       const cartItemBeforeUpdate =
-        await CartItem.getCartItemById(testCartItemId);
+        await CartItem.getCartItemByBookId(testBookId);
       expect(cartItemBeforeUpdate?.quantity).toEqual(2);
 
       const newQuantity = 3;
       const res = await request(server)
-        .patch(`/api/cart-item/${testCartItemId}`)
+        .patch(`/api/cart-items/${testBookId}`)
         .send({ quantity: newQuantity });
       expect(res.statusCode).toEqual(200);
       expect(res.body).toEqual({ message: "cart item updated successfully!" });
 
       const cartItemAfterUpdate =
-        await CartItem.getCartItemById(testCartItemId);
+        await CartItem.getCartItemByBookId(testBookId);
       expect(cartItemAfterUpdate?.quantity).toEqual(newQuantity);
     });
   });
 
-  describe("Cart Item - DELETE /api/cart-item/:cartItemId", () => {
+  describe("Cart Item - DELETE /api/cart-items/:bookId", () => {
     it("should return 404 when cart item does not exist", async () => {
-      const nonExistingCartItemId = "6f6f91a6-dbf9-4b5a-93c3-c09b3b8b798a";
+      const nonExistingBookId = "6f6f91a6-dbf9-4b5a-93c3-c09b3b8b798a";
       const res = await request(server).delete(
-        `/api/cart-item/${nonExistingCartItemId}`
+        `/api/cart-items/${nonExistingBookId}`
       );
 
       expect(res.statusCode).toEqual(404);
@@ -236,18 +211,16 @@ describe("Cart Item endpoints test", () => {
 
     it("should remove item from cart", async () => {
       const cartItemBeforeDelete =
-        await CartItem.getCartItemById(testCartItemId);
+        await CartItem.getCartItemByBookId(testBookId);
       expect(cartItemBeforeDelete).toBeDefined();
 
-      const res = await request(server).delete(
-        `/api/cart-item/${testCartItemId}`
-      );
+      const res = await request(server).delete(`/api/cart-items/${testBookId}`);
 
       expect(res.statusCode).toEqual(200);
       expect(res.body).toEqual({ message: "cart item deleted successfuly!" });
 
       const cartItemAfterDelete =
-        await CartItem.getCartItemById(testCartItemId);
+        await CartItem.getCartItemByBookId(testBookId);
       expect(cartItemAfterDelete).not.toBeDefined();
     });
   });

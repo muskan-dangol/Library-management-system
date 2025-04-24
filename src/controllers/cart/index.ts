@@ -1,16 +1,6 @@
 import { Request, Response, NextFunction } from "express";
 import Cart from "../../models/carts";
 
-const getCart = async (req: Request, res: Response, next: NextFunction) => {
-  try {
-    const cart = await Cart.getCart();
-
-    res.status(200).json(cart);
-  } catch (error) {
-    next(error);
-  }
-};
-
 const getCartByUserId = async (
   req: Request,
   res: Response,
@@ -22,7 +12,7 @@ const getCartByUserId = async (
     const cart = await Cart.getCartByUserId(userId);
 
     if (!cart) {
-      res.status(404).json({ error: "cart not found!" });
+      res.status(400).json({ error: "cart not found!" });
       return;
     }
 
@@ -56,20 +46,21 @@ const addCart = async (req: Request, res: Response, next: NextFunction) => {
   }
 };
 
-const deleteCart = async (req: Request, res: Response, next: NextFunction) => {
+const updateCart = async (req: Request, res: Response, next: NextFunction) => {
   try {
     const { userId } = req.params;
-    
+    const payload = req.body;
+
     const cartExists = await Cart.getCartByUserId(userId);
 
     if (!cartExists) {
-      res.status(404).json({ error: "Cart not found!" });
+      res.status(400).json({ error: "cart not found!" });
       return;
     }
 
-    await Cart.deleteCart(userId);
-    res.status(200).json({ message: "deleted cart successfully!" });
+    await Cart.updateCart(userId, payload);
+    res.status(200).json({ message: "updated cart successfully!" });
   } catch (error) {}
 };
 
-export { getCart, getCartByUserId, addCart, deleteCart };
+export { getCartByUserId, addCart, updateCart };

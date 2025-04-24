@@ -22,7 +22,7 @@ router.use("/users", userRouter);
 router.use("/books", bookRouter);
 router.use("/categories", categoryRouter);
 router.use("/cart", cartRouter);
-router.use("/cart-item", cartItemRouter);
+router.use("/cart-items", cartItemRouter);
 router.use("/reviews", reviewRouter);
 router.use("/replies", replyRouter);
 

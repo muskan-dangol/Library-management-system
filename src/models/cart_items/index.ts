@@ -1,5 +1,4 @@
 import db from "../../database/db";
-import { categoryType } from "../categories/types";
 import { CartItemType } from "./types";
 
 const addCartItem = (
@@ -12,12 +11,6 @@ const getAllCartItems = (): Promise<CartItemType[]> => {
   return db("cart_item").select("*");
 };
 
-const getCartItemById = (
-  cartItemId: string
-): Promise<CartItemType | undefined> => {
-  return db("cart_item").where({ id: cartItemId }).first();
-};
-
 const getCartItemByBookId = (
   bookId: string
 ): Promise<CartItemType | undefined> => {
@@ -25,20 +18,19 @@ const getCartItemByBookId = (
 };
 
 const updateCartItem = async (
-  cartItemId: string,
+  bookId: string,
   reqPayload: Partial<CartItemType>
 ): Promise<void> => {
-  await db("cart_item").where({ id: cartItemId }).update(reqPayload);
+  await db("cart_item").where({ book_id: bookId }).update(reqPayload);
 };
 
-const deleteCartItem = async (cartItemId: string): Promise<void> => {
-  await db("cart_item").where({ id: cartItemId }).delete();
+const deleteCartItem = async (bookId: string): Promise<void> => {
+  await db("cart_item").where({ book_id: bookId }).delete();
 };
 
 export default {
   addCartItem,
   getAllCartItems,
-  getCartItemById,
   getCartItemByBookId,
   updateCartItem,
   deleteCartItem,

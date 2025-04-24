@@ -1,30 +1,13 @@
 import { Request, Response, NextFunction } from "express";
 import CartItem from "../../models/cart_items";
 
-const getCartItem = async (req: Request, res: Response, next: NextFunction) => {
-  try {
-    const cartItem = await CartItem.getAllCartItems();
-
-    res.status(200).json(cartItem);
-  } catch (error) {
-    next(error);
-  }
-};
-
-const getCartItemById = async (
+const getAllCartItems = async (
   req: Request,
   res: Response,
   next: NextFunction
 ) => {
   try {
-    const { cartItemId } = req.params;
-
-    const cartItem = await CartItem.getCartItemById(cartItemId);
-
-    if (!cartItem) {
-      res.status(404).json({ error: "cart item not found!" });
-      return;
-    }
+    const cartItem = await CartItem.getAllCartItems();
 
     res.status(200).json(cartItem);
   } catch (error) {
@@ -55,15 +38,15 @@ const getCartItemByBookId = async (
 
 const addCartItem = async (req: Request, res: Response, next: NextFunction) => {
   try {
-    const { user_id, book_id } = req.body;
+    const { cart_id, book_id } = req.body;
 
-    if (!user_id) {
-      res.status(400).json({ error: "signUp before adding items in cart!" });
+    if (!cart_id) {
+      res.status(400).json({ error: "cart id is required!" });
       return;
     }
 
     if (!book_id) {
-      res.status(400).json({ error: "book not found!" });
+      res.status(400).json({ error: "book id is required!" });
       return;
     }
 
@@ -71,7 +54,7 @@ const addCartItem = async (req: Request, res: Response, next: NextFunction) => {
     if (cartItemExists) {
       const updatedCartItem = cartItemExists.quantity + 1;
 
-      await CartItem.updateCartItem(cartItemExists.id, {
+      await CartItem.updateCartItem(cartItemExists.book_id, {
         quantity: updatedCartItem,
         updated_on: new Date(),
       });
@@ -80,10 +63,9 @@ const addCartItem = async (req: Request, res: Response, next: NextFunction) => {
     }
 
     await CartItem.addCartItem({
-      user_id,
+      cart_id,
       book_id,
     });
-
     res.status(201).json({ message: "Item added to cart!" });
   } catch (error) {
     next(error);
@@ -96,17 +78,17 @@ const updateCartItem = async (
   next: NextFunction
 ) => {
   try {
-    const { cartItemId } = req.params;
-
+    const { bookId } = req.params;
     const payload = req.body;
-    const cartItemExists = await CartItem.getCartItemById(cartItemId);
+    
+    const cartItemExists = await CartItem.getCartItemByBookId(bookId);
 
     if (!cartItemExists) {
       res.status(404).json({ error: "cart item not found!" });
       return;
     }
 
-    await CartItem.updateCartItem(cartItemId, payload);
+    await CartItem.updateCartItem(bookId, payload);
 
     res.status(200).json({ message: "cart item updated successfully!" });
   } catch (error) {
@@ -120,16 +102,16 @@ const deleteCartItem = async (
   next: NextFunction
 ) => {
   try {
-    const { cartItemId } = req.params;
+    const { bookId } = req.params;
 
-    const cartItemExists = await CartItem.getCartItemById(cartItemId);
+    const cartItemExists = await CartItem.getCartItemByBookId(bookId);
 
     if (!cartItemExists) {
       res.status(404).json({ error: "cart item not found!" });
       return;
     }
 
-    await CartItem.deleteCartItem(cartItemId);
+    await CartItem.deleteCartItem(bookId);
 
     res.status(200).json({ message: "cart item deleted successfuly!" });
   } catch (error) {
@@ -138,8 +120,7 @@ const deleteCartItem = async (
 };
 
 export {
-  getCartItem,
-  getCartItemById,
+  getAllCartItems,
   getCartItemByBookId,
   addCartItem,
   updateCartItem,

@@ -1,20 +1,19 @@
 import db from "../../database/db";
 import { CartType } from "./types";
 
-const addCart = (userId: Partial<CartType>): Promise<CartType[]> => {
-  return db("cart").insert({ user_id: userId }).returning("*");
+const addCart = (user_id: string): Promise<CartType[]> => {
+  return db("cart").insert({ user_id }).returning("*");
 };
 
-const getCart = (): Promise<CartType[]> => {
-  return db("cart").select("*");
-};
-
-const getCartByUserId = (userId: string): Promise<CartType[]> => {
+const getCartByUserId = (userId: string): Promise<CartType | undefined> => {
   return db("cart").where({ user_id: userId }).first();
 };
 
-const deleteCart = async (userId: string): Promise<void> => {
-  await db("cart").where({ user_id: userId }).delete();
+const updateCart = async (
+  userId: string,
+  payload: Partial<CartType[]>
+): Promise<void> => {
+  await db("cart").where({ user_id: userId }).update(payload);
 };
 
-export default { addCart, getCart, getCartByUserId, deleteCart };
+export default { addCart, getCartByUserId, updateCart };
