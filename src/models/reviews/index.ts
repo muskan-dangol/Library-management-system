@@ -5,20 +5,16 @@ const addReview = (reqPayload: Partial<ReviewType>): Promise<ReviewType[]> => {
   return db("review").insert(reqPayload).returning("*");
 };
 
-const getAllReviews = (): Promise<ReviewType[]> => {
-  return db("review").select("*");
-};
-
 const getReviewById = (reviewId: string): Promise<ReviewType | undefined> => {
   return db("review").where({ id: reviewId }).first();
 };
 
-const getReviewsByBookId = (bookId: string): Promise<ReviewType | undefined> => {
-  return db("review").where({ book_id: bookId }).first();
+const getReviewsByBookId = (bookId: string): Promise<ReviewType[]> => {
+  return db("review").where({ book_id: bookId });
 };
 
-const getReviewsByUserId = (userId: string): Promise<ReviewType | undefined> => {
-  return db("review").where({ user_id: userId }).first();
+const getReviewsByUserId = (userId: string): Promise<ReviewType[]> => {
+  return db("review").where({ user_id: userId });
 };
 
 const updateReview = async (
@@ -34,7 +30,6 @@ const deleteReview = async (reviewId: string): Promise<void> => {
 
 export default {
   addReview,
-  getAllReviews,
   getReviewById,
   getReviewsByBookId,
   getReviewsByUserId,

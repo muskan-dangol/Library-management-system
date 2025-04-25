@@ -4,7 +4,6 @@ import * as reviewController from "../../controllers/review";
 const router = express.Router();
 
 router.post("/", reviewController.addReview);
-router.get("/", reviewController.getAllReviews);
 router.get("/:reviewId", reviewController.getReviewById);
 router.get("/book/:bookId", reviewController.getReviewsByBookId);
 router.get("/user/:userId", reviewController.getReviewsByUserId);

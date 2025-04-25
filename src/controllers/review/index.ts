@@ -1,21 +1,5 @@
 import { Request, Response, NextFunction } from "express";
 import Review from "../../models/reviews";
-import User from "../../models/users";
-import Book from "../../models/books";
-
-const getAllReviews = async (
-  req: Request,
-  res: Response,
-  next: NextFunction
-) => {
-  try {
-    const reviews = await Review.getAllReviews();
-
-    res.status(200).json(reviews);
-  } catch (error) {
-    next(error);
-  }
-};
 
 const getReviewById = async (
   req: Request,
@@ -48,7 +32,7 @@ const getReviewsByBookId = async (
 
     const reviews = await Review.getReviewsByBookId(bookId);
 
-    if (!reviews) {
+    if (reviews.length === 0) {
       res.status(404).json({ error: "review not found!" });
       return;
     }
@@ -69,7 +53,7 @@ const getReviewsByUserId = async (
 
     const reviews = await Review.getReviewsByUserId(userId);
 
-    if (!reviews) {
+    if (reviews.length === 0) {
       res.status(404).json({ error: "reviews not found!" });
       return;
     }
@@ -82,33 +66,20 @@ const getReviewsByUserId = async (
 
 const addReview = async (req: Request, res: Response, next: NextFunction) => {
   try {
-    const { ...payload } = req.body;
-    const { user_id, book_id, comment, rating } = payload;
+    const { user_id, book_id, comment, rating } = req.body;
 
-    const user = await User.getUserById(user_id);
-    const book = await Book.getBookById(book_id);
-    if (!(user_id && user)) {
-      res.status(400).json({ error: "signUp before adding review" });
+    if (!user_id) {
+      res.status(400).json({ error: "user_id is required!" });
       return;
     }
 
-    if (!(book_id && book)) {
-      res.status(404).json({ error: "book not found!" });
+    if (!book_id) {
+      res.status(400).json({ error: "book_id is required!" });
       return;
     }
 
     if (!comment && !rating) {
       res.status(400).json({ error: "missing review!" });
-      return;
-    }
-
-    const reviewExists = await Review.getReviewsByUserId(user_id);
-
-    if (reviewExists && (reviewExists.book_id === book_id)) {
-      const existingReviewId = reviewExists.id;
-      await Review.updateReview(payload, existingReviewId);
-
-      res.status(200).json({message: "updated existing review!"});
       return;
     }
 
@@ -130,12 +101,10 @@ const updateReview = async (
   next: NextFunction
 ) => {
   try {
-    const { ...payload } = req.body;
+    const payload = req.body;
     const { reviewId } = req.params;
 
-    const { comment, rating } = payload;
-    
-    if (!comment && !rating) {
+    if (!(payload.comment && payload.rating)) {
       res.status(400).json({ error: "missing review!" });
       return;
     }
@@ -146,7 +115,7 @@ const updateReview = async (
       res.status(404).json({ error: "review not found!" });
       return;
     }
-    
+
     await Review.updateReview(payload, reviewId);
     res.status(200).json({ message: "review updated successfully!" });
   } catch (error) {
@@ -177,7 +146,6 @@ const deleteReview = async (
 };
 
 export {
-  getAllReviews,
   getReviewById,
   getReviewsByUserId,
   getReviewsByBookId,
