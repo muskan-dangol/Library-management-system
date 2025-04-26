@@ -24,6 +24,10 @@ const resetReview = async (): Promise<void> => {
   await db("review").del("*");
 };
 
+const resetReply = async (): Promise<void> => {
+  await db("reply").del("*");
+};
+
 export const resetDb = async () => {
   await resetUsers();
   await resetBooks();
@@ -31,6 +35,7 @@ export const resetDb = async () => {
   await resetCart();
   await resetCartItem();
   await resetReview();
+  await resetReply();
 };
 
 export const destroyDb = async () => {

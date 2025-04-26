@@ -103,6 +103,7 @@ export async function up(knex: Knex): Promise<void> {
 
   await knex.raw(`
     CREATE TABLE IF NOT EXISTS "reply" (
+      id UUID PRIMARY KEY DEFAULT uuid_generate_v4(),
       user_id UUID NOT NULL,
       review_id UUID NOT NULL,
       comment TEXT,
