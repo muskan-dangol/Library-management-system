@@ -73,15 +73,15 @@ const updateReply = async (req: Request, res: Response, next: NextFunction) => {
     const { replyId } = req.params;
     const reqpayload = req.body;
 
+    if (!reqpayload.comment) {
+      res.status(400).json({ error: "comment is required!" });
+      return;
+    }
+
     const replyExists = await Reply.getReplyById(replyId);
 
     if (!replyExists) {
       res.status(404).json({ error: "reply not found!" });
-      return;
-    }
-
-    if (!reqpayload.comment) {
-      res.status(400).json({ error: "comment is required!" });
       return;
     }
 
