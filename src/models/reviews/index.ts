@@ -25,7 +25,7 @@ const updateReview = async (
 };
 
 const deleteReview = async (reviewId: string): Promise<void> => {
-  return db("review").where({ id: reviewId }).delete();
+  await db("review").where({ id: reviewId }).delete();
 };
 
 export default {

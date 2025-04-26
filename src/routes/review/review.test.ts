@@ -169,9 +169,7 @@ describe("Review endpoints test", () => {
 
   describe("Review - GET /api/reviews/book/:bookId", () => {
     it("should return 404 when a review is not found by book Id", async () => {
-      const res = await request(server).get(
-        `/api/reviews/book/${testBookId3}`
-      );
+      const res = await request(server).get(`/api/reviews/book/${testBookId3}`);
 
       expect(res.statusCode).toEqual(404);
       expect(res.body).toEqual({ error: "review not found!" });
@@ -181,7 +179,8 @@ describe("Review endpoints test", () => {
       const res = await request(server).get(`/api/reviews/book/${testBookId}`);
 
       expect(res.statusCode).toEqual(200);
-      expect(res.body).toEqual(
+      expect(res.body).toHaveLength(1);
+      expect(res.body).toEqual([
         expect.objectContaining({
           id: expect.any(String),
           user_id: testUserId,
@@ -189,16 +188,14 @@ describe("Review endpoints test", () => {
           comment: "This is a good book!",
           rating: 4,
           created_on: expect.any(String),
-        })
-      );
+        }),
+      ]);
     });
   });
 
   describe("Review - GET /api/reviews/user/:userId", () => {
     it("should return 404 when a review is not found by user Id", async () => {
-      const res = await request(server).get(
-        `/api/reviews/user/${testUserId2}`
-      );
+      const res = await request(server).get(`/api/reviews/user/${testUserId2}`);
 
       expect(res.statusCode).toEqual(404);
       expect(res.body).toEqual({ error: "reviews not found!" });
@@ -208,7 +205,8 @@ describe("Review endpoints test", () => {
       const res = await request(server).get(`/api/reviews/user/${testUserId}`);
 
       expect(res.statusCode).toEqual(200);
-      expect(res.body).toEqual(
+      expect(res.body).toHaveLength(1);
+      expect(res.body).toEqual([
         expect.objectContaining({
           id: expect.any(String),
           user_id: testUserId,
@@ -217,7 +215,7 @@ describe("Review endpoints test", () => {
           rating: 4,
           created_on: expect.any(String),
         })
-      );
+      ]);
     });
   });
 
@@ -236,7 +234,7 @@ describe("Review endpoints test", () => {
     });
 
     it("should return 404 when review is not found", async () => {
-      const nonExistingReviewId = "6f6f91a6-dbf9-4b5a-93c3-c09b3b8b798a"
+      const nonExistingReviewId = "6f6f91a6-dbf9-4b5a-93c3-c09b3b8b798a";
       const res = await request(server).get(
         `/api/reviews/${nonExistingReviewId}`
       );

@@ -32,11 +32,6 @@ const getReviewsByBookId = async (
 
     const reviews = await Review.getReviewsByBookId(bookId);
 
-    if (reviews.length === 0) {
-      res.status(404).json({ error: "review not found!" });
-      return;
-    }
-
     res.status(200).json(reviews);
   } catch (error) {
     next(error);
@@ -52,11 +47,6 @@ const getReviewsByUserId = async (
     const { userId } = req.params;
 
     const reviews = await Review.getReviewsByUserId(userId);
-
-    if (reviews.length === 0) {
-      res.status(404).json({ error: "reviews not found!" });
-      return;
-    }
 
     res.status(200).json(reviews);
   } catch (error) {
