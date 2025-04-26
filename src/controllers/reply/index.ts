@@ -48,12 +48,12 @@ const addReply = async (req: Request, res: Response, next: NextFunction) => {
     }
 
     if (!review_id) {
-      res.status(404).json({ error: "review_id is required!" });
+      res.status(400).json({ error: "review_id is required!" });
       return;
     }
 
     if (!comment) {
-      res.status(400).json({ error: "comment cannot be null!" });
+      res.status(400).json({ error: "comment cannot be empty!" });
       return;
     }
 
@@ -71,7 +71,7 @@ const addReply = async (req: Request, res: Response, next: NextFunction) => {
 const updateReply = async (req: Request, res: Response, next: NextFunction) => {
   try {
     const { replyId } = req.params;
-    const comment = req.body;
+    const reqpayload = req.body;
 
     const replyExists = await Reply.getReplyById(replyId);
 
@@ -80,7 +80,12 @@ const updateReply = async (req: Request, res: Response, next: NextFunction) => {
       return;
     }
 
-    await Reply.updateReply(replyId, comment);
+    if (!reqpayload.comment) {
+      res.status(400).json({ error: "comment is required!" });
+      return;
+    }
+
+    await Reply.updateReply(replyId, reqpayload);
 
     res.status(200).json({ message: "reply updated successfully!" });
   } catch (error) {
@@ -92,8 +97,10 @@ const deleteReply = async (req: Request, res: Response, next: NextFunction) => {
   try {
     const { replyId } = req.params;
 
-    if (!replyId) {
-      res.status(404).json({ error: "replyId is required!" });
+    const reply = await Reply.getReplyById(replyId);
+
+    if (!reply) {
+      res.status(404).json({ error: "reply not found!" });
       return;
     }
 
