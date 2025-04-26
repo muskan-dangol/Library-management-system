@@ -1,20 +1,6 @@
 import { Request, Response, NextFunction } from "express";
 import Reply from "../../models/replies";
 
-const getAllReplies = async (
-  req: Request,
-  res: Response,
-  next: NextFunction
-) => {
-  try {
-    const replies = await Reply.getAllReplies();
-
-    res.status(200).json(replies);
-  } catch (error) {
-    next(error);
-  }
-};
-
 const getRepliesByReviewId = async (
   req: Request,
   res: Response,
@@ -25,26 +11,21 @@ const getRepliesByReviewId = async (
 
     const replies = await Reply.getRepliesByReviewId(reviewId);
 
-    if (!replies) {
-      res.status(404).json({ error: "replies not found!" });
-      return;
-    }
-
     res.status(200).json(replies);
   } catch (error) {
     next(error);
   }
 };
 
-const getReplyByUserId = async (
+const getReplyById = async (
   req: Request,
   res: Response,
   next: NextFunction
 ) => {
   try {
-    const { userId } = req.params;
+    const { replyId } = req.params;
 
-    const reply = await Reply.getReplyByUserId(userId);
+    const reply = await Reply.getReplyById(replyId);
 
     if (!reply) {
       res.status(404).json({ error: "reply not found!" });
@@ -59,16 +40,15 @@ const getReplyByUserId = async (
 
 const addReply = async (req: Request, res: Response, next: NextFunction) => {
   try {
-    const { ...payload } = req.body;
-    const { user_id, review_id, comment } = payload;
+    const { user_id, review_id, comment } = req.body;
 
     if (!user_id) {
-      res.status(400).json({ error: "sign up before replying!" });
+      res.status(400).json({ error: "user_id is required!" });
       return;
     }
 
     if (!review_id) {
-      res.status(404).json({ error: "review not found to add reply!" });
+      res.status(404).json({ error: "review_id is required!" });
       return;
     }
 
@@ -77,7 +57,11 @@ const addReply = async (req: Request, res: Response, next: NextFunction) => {
       return;
     }
 
-    const reply = await Reply.addReply(payload);
+    const reply = await Reply.addReply({
+      user_id: user_id,
+      review_id: review_id,
+      comment: comment,
+    });
     res.status(201).json(reply);
   } catch (error) {
     next(error);
@@ -86,17 +70,17 @@ const addReply = async (req: Request, res: Response, next: NextFunction) => {
 
 const updateReply = async (req: Request, res: Response, next: NextFunction) => {
   try {
-    const { reviewId } = req.params;
+    const { replyId } = req.params;
     const comment = req.body;
 
-    const replyExists = await Reply.getRepliesByReviewId(reviewId);
+    const replyExists = await Reply.getReplyById(replyId);
 
     if (!replyExists) {
-      res.status(404).json({ error: "review not found!" });
+      res.status(404).json({ error: "reply not found!" });
       return;
     }
 
-    await Reply.updateReply(reviewId, comment);
+    await Reply.updateReply(replyId, comment);
 
     res.status(200).json({ message: "reply updated successfully!" });
   } catch (error) {
@@ -106,14 +90,14 @@ const updateReply = async (req: Request, res: Response, next: NextFunction) => {
 
 const deleteReply = async (req: Request, res: Response, next: NextFunction) => {
   try {
-    const { reviewId } = req.params;
+    const { replyId } = req.params;
 
-    if (!reviewId) {
-      res.status(404).json({ error: "review not found!" });
+    if (!replyId) {
+      res.status(404).json({ error: "replyId is required!" });
       return;
     }
 
-    await Reply.deleteReply(reviewId);
+    await Reply.deleteReply(replyId);
     res.status(200).json({ message: "reply deleted successfully!" });
   } catch (error) {
     next(error);
@@ -121,9 +105,8 @@ const deleteReply = async (req: Request, res: Response, next: NextFunction) => {
 };
 
 export {
-  getAllReplies,
   getRepliesByReviewId,
-  getReplyByUserId,
+  getReplyById,
   addReply,
   updateReply,
   deleteReply,

@@ -5,35 +5,28 @@ const addReply = (reqpayload: Partial<ReplyType>): Promise<ReplyType[]> => {
   return db("reply").insert(reqpayload).returning("*");
 };
 
-const getAllReplies = (): Promise<ReplyType[]> => {
-  return db("reply").select("*");
+const getReplyById = (replyId: string): Promise<ReplyType | undefined> => {
+  return db("reply").where({ id: replyId }).first();
 };
 
-const getReplyByUserId = (userId: string): Promise<ReplyType | undefined> => {
-  return db("reply").where({ user_id: userId }).first();
-};
-
-const getRepliesByReviewId = (
-  reviewId: string
-): Promise<ReplyType | undefined> => {
-  return db("reply").where({ review_id: reviewId }).first();
+const getRepliesByReviewId = (reviewId: string): Promise<ReplyType[]> => {
+  return db("reply").where({ review_id: reviewId });
 };
 
 const updateReply = async (
-  reviewId: string,
+  replyId: string,
   reqpayload: Partial<ReplyType>
 ): Promise<void> => {
-  await db("reply").where({ review_id: reviewId }).update(reqpayload);;
+  await db("reply").where({ id: replyId }).update(reqpayload);
 };
 
-const deleteReply = async (reviewId: string): Promise<void> => {
-  await db("reply").where({ review_id: reviewId }).delete();
+const deleteReply = async (replyId: string): Promise<void> => {
+  await db("reply").where({ id: replyId }).delete();
 };
 
 export default {
   addReply,
-  getAllReplies,
-  getReplyByUserId,
+  getReplyById,
   getRepliesByReviewId,
   updateReply,
   deleteReply,
