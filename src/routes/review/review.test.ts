@@ -83,7 +83,7 @@ describe("Review endpoints test", () => {
     server.close();
   });
 
-  describe.only("Review - POST /api/reviews", () => {
+  describe("Review - POST /api/reviews", () => {
     it("should return 400 when user id is missing", async () => {
       const res = await request(server).post("/api/reviews").send({
         user_id: "",

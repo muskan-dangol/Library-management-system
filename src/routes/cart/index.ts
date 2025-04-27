@@ -3,8 +3,9 @@ import * as cartController from "../../controllers/cart";
 
 const router = express.Router();
 
-router.get("/:userId", cartController.getCartByUserId);
 router.post("/", cartController.addCart);
+router.get("/:userId", cartController.getAllCartsByUserId);
+router.get("/active/:userId", cartController.getActiveCartByUserId);
 router.patch("/:userId", cartController.updateCart);
 
 export { router };

@@ -11,15 +11,28 @@ const testUserPayload = {
   password: "password123",
 };
 
-describe("Cart endpoints test", () => {
+const testUserPayload2 = {
+  email: "testing@example.com",
+  firstname: "Johns",
+  lastname: "Does",
+  password: "password123",
+};
+
+describe.only("Cart endpoints test", () => {
   let testUserId: string;
+  let testUserId2: string;
 
   beforeAll(async () => {
     server.listen(0);
     await resetDb();
 
-    const addTestUser = await User.createUser(testUserPayload);
-    testUserId = addTestUser[0].id;
+    const [addTestUser] = await User.createUser(testUserPayload);
+    const [addTestUser2] = await User.createUser(testUserPayload2);
+    testUserId = addTestUser.id;
+    testUserId2 = addTestUser2.id;
+
+    const [cart] = await Cart.addCart(testUserId2);
+    await Cart.updateCart(testUserId2, { enabled: false });
   });
 
   afterAll(async () => {
@@ -27,9 +40,9 @@ describe("Cart endpoints test", () => {
     server.close();
   });
 
-  describe("Cart - POST /api/cart", () => {
+  describe("Cart - POST /api/carts", () => {
     it("should return 400 when a userId is missing ", async () => {
-      const res = await request(server).post("/api/cart").send({
+      const res = await request(server).post("/api/carts").send({
         user_id: "",
       });
 
@@ -38,7 +51,7 @@ describe("Cart endpoints test", () => {
     });
 
     it("should add a cart successfully", async () => {
-      const res = await request(server).post("/api/cart").send({
+      const res = await request(server).post("/api/carts").send({
         user_id: testUserId,
       });
 
@@ -47,13 +60,14 @@ describe("Cart endpoints test", () => {
         expect.objectContaining({
           id: expect.any(String),
           user_id: testUserId,
+          enabled: true,
           created_on: expect.any(String),
         }),
       ]);
     });
 
     it("should not add cart when a cart already exists", async () => {
-      const res = await request(server).post("/api/cart").send({
+      const res = await request(server).post("/api/carts").send({
         user_id: testUserId,
       });
 
@@ -62,55 +76,87 @@ describe("Cart endpoints test", () => {
     });
   });
 
-  describe("Cart - GET /api/cart/:userId", () => {
-    it("should return 400 when cart is not found", async () => {
+  describe("Cart - GET /api/carts/:userId", () => {
+    it("should return 404 when cart is not found", async () => {
       const nonExistingUserId = "0a3b4c71-776a-4687-ac55-58d04702ec02";
-      const res = await request(server).get(`/api/cart/${nonExistingUserId}`);
+      const res = await request(server).get(`/api/carts/${nonExistingUserId}`);
 
-      expect(res.statusCode).toEqual(400);
+      expect(res.statusCode).toEqual(404);
       expect(res.body).toEqual({ error: "cart not found!" });
     });
 
     it("should return cart with userId", async () => {
-      const res = await request(server).get(`/api/cart/${testUserId}`);
+      const res = await request(server).get(`/api/carts/${testUserId}`);
+
+      expect(res.statusCode).toEqual(200);
+      expect(res.body).toEqual([
+        expect.objectContaining({
+          id: expect.any(String),
+          user_id: testUserId,
+          enabled: expect.any(Boolean),
+          created_on: expect.any(String),
+        }),
+      ]);
+    });
+  });
+
+  describe("Cart - GET /api/carts/active/:userId", () => {
+    it("should return 404 when no active cart is found", async () => {
+      const res = await request(server).get(`/api/carts/active/${testUserId2}`);
+
+      expect(res.statusCode).toEqual(404);
+      expect(res.body).toEqual({ error: "no active cart found!" });
+    });
+
+    it("should return active cart", async () => {
+      const res = await request(server).get(`/api/carts/active/${testUserId}`);
 
       expect(res.statusCode).toEqual(200);
       expect(res.body).toEqual(
         expect.objectContaining({
           id: expect.any(String),
           user_id: testUserId,
-          enabled: expect.any(Boolean),
+          enabled: true,
           created_on: expect.any(String),
         })
       );
     });
   });
 
-  describe("Cart - PATCH /api/cart/:userId", () => {
+  describe("Cart - PATCH /api/carts/:userId", () => {
+    it("should return 400 when new value is missing", async () => {
+      const res = await request(server).patch(`/api/carts/${testUserId}`).send({
+        enabled: "",
+      });
+
+      expect(res.statusCode).toEqual(400);
+      expect(res.body).toEqual({ error: "payload is required" });
+    });
+
     it("should return 404 when a cart is not found", async () => {
       const nonExistingUserId = "123e4567-e89b-12d3-a456-426614174000";
       const res = await request(server)
-        .patch(`/api/cart/${nonExistingUserId}`)
+        .patch(`/api/carts/${nonExistingUserId}`)
         .send({
           enabled: false,
         });
 
-      expect(res.statusCode).toEqual(400);
+      expect(res.statusCode).toEqual(404);
       expect(res.body).toEqual({ error: "cart not found!" });
     });
 
     it("should update cart successfully", async () => {
-      const cartItemBeforeUpdate = await Cart.getCartByUserId(testUserId);
+      const cartItemBeforeUpdate = await Cart.getActiveCartByUserId(testUserId);
       expect(cartItemBeforeUpdate?.enabled).toEqual(true);
 
-      const res = await request(server).patch(`/api/cart/${testUserId}`).send({
+      const res = await request(server).patch(`/api/carts/${testUserId}`).send({
         enabled: false,
       });
 
       expect(res.statusCode).toEqual(200);
       expect(res.body).toEqual({ message: "updated cart successfully!" });
 
-      const cartItemAfterUpdate = await Cart.getCartByUserId(testUserId);
+      const [cartItemAfterUpdate] = await Cart.getAllCartsByUserId(testUserId);
       expect(cartItemAfterUpdate?.enabled).toEqual(false);
     });
   });

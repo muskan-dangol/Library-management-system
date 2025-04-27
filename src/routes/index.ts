@@ -21,7 +21,7 @@ router.use("/auth", authRouter);
 router.use("/users", userRouter);
 router.use("/books", bookRouter);
 router.use("/categories", categoryRouter);
-router.use("/cart", cartRouter);
+router.use("/carts", cartRouter);
 router.use("/cart-items", cartItemRouter);
 router.use("/reviews", reviewRouter);
 router.use("/replies", replyRouter);

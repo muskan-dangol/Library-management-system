@@ -1,7 +1,7 @@
 import { Request, Response, NextFunction } from "express";
 import Cart from "../../models/carts";
 
-const getCartByUserId = async (
+const getAllCartsByUserId = async (
   req: Request,
   res: Response,
   next: NextFunction
@@ -9,14 +9,34 @@ const getCartByUserId = async (
   try {
     const { userId } = req.params;
 
-    const cart = await Cart.getCartByUserId(userId);
+    const carts = await Cart.getAllCartsByUserId(userId);
 
-    if (!cart) {
-      res.status(400).json({ error: "cart not found!" });
+    if (carts.length === 0) {
+      res.status(404).json({ error: "cart not found!" });
       return;
     }
 
-    res.status(200).json(cart);
+    res.status(200).json(carts);
+  } catch (error) {
+    next(error);
+  }
+};
+
+const getActiveCartByUserId = async (
+  req: Request,
+  res: Response,
+  next: NextFunction
+) => {
+  try {
+    const { userId } = req.params;
+
+    const activeCart = await Cart.getActiveCartByUserId(userId);
+
+    if (!activeCart) {
+      res.status(404).json({ error: "no active cart found!" });
+    }
+
+    res.status(200).json(activeCart);
   } catch (error) {
     next(error);
   }
@@ -31,9 +51,9 @@ const addCart = async (req: Request, res: Response, next: NextFunction) => {
       return;
     }
 
-    const cartExists = await Cart.getCartByUserId(user_id);
+    const activeCartExists = await Cart.getActiveCartByUserId(user_id);
 
-    if (cartExists) {
+    if (activeCartExists) {
       res.status(400).json({ error: "cart already exists!" });
       return;
     }
@@ -51,10 +71,15 @@ const updateCart = async (req: Request, res: Response, next: NextFunction) => {
     const { userId } = req.params;
     const payload = req.body;
 
-    const cartExists = await Cart.getCartByUserId(userId);
+    if (payload.enabled === "") {
+      res.status(400).json({ error: "payload is required" });
+      return;
+    }
+
+    const cartExists = await Cart.getActiveCartByUserId(userId);
 
     if (!cartExists) {
-      res.status(400).json({ error: "cart not found!" });
+      res.status(404).json({ error: "cart not found!" });
       return;
     }
 
@@ -63,4 +88,4 @@ const updateCart = async (req: Request, res: Response, next: NextFunction) => {
   } catch (error) {}
 };
 
-export { getCartByUserId, addCart, updateCart };
+export { getAllCartsByUserId, getActiveCartByUserId, addCart, updateCart };
