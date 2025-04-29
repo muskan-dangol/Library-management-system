@@ -56,6 +56,7 @@ export async function up(knex: Knex): Promise<void> {
     CREATE TABLE IF NOT EXISTS "cart" (
       id UUID PRIMARY KEY DEFAULT uuid_generate_v4(),
       user_id UUID NOT NULL,
+      enabled BOOLEAN NOT NULL DEFAULT true,
       created_on TIMESTAMPTZ(0) NOT NULL DEFAULT NOW(),
       FOREIGN KEY (user_id) REFERENCES "user"(id) ON DELETE CASCADE
     );
@@ -63,15 +64,13 @@ export async function up(knex: Knex): Promise<void> {
 
   await knex.raw(`
     CREATE TABLE IF NOT EXISTS "cart_item" (
-      id UUID PRIMARY KEY DEFAULT uuid_generate_v4(),
-      user_id UUID NOT NULL,
+      cart_id UUID REFERENCES "cart"(id) ON DELETE CASCADE,
       book_id UUID NOT NULL,
       quantity INTEGER DEFAULT 1,
       created_on TIMESTAMPTZ(0) NOT NULL DEFAULT NOW(),
       updated_on TIMESTAMPTZ(0),
-      FOREIGN KEY (user_id) REFERENCES "user"(id) ON DELETE CASCADE,
       FOREIGN KEY (book_id) REFERENCES "book"(id) ON DELETE CASCADE,
-      UNIQUE (book_id, user_id)
+      UNIQUE (cart_id, book_id)
     );
   `);
 
