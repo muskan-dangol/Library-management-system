@@ -8,6 +8,7 @@ import { router as cartRouter } from "./cart";
 import { router as cartItemRouter } from "./cart_item";
 import { router as reviewRouter } from "./review";
 import { router as replyRouter } from "./reply";
+import { router as reservationRouter } from "./reservation";
 
 const router = express.Router();
 
@@ -25,6 +26,6 @@ router.use("/carts", cartRouter);
 router.use("/cart-items", cartItemRouter);
 router.use("/reviews", reviewRouter);
 router.use("/replies", replyRouter);
-
+router.use("/reservations", reservationRouter);
 
 export default router;

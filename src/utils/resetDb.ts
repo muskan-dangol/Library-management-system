@@ -28,6 +28,10 @@ const resetReply = async (): Promise<void> => {
   await db("reply").del("*");
 };
 
+const resetReservation = async (): Promise<void> => {
+  await db("reservation").del("*");
+};
+
 export const resetDb = async () => {
   await resetUsers();
   await resetBooks();
@@ -36,6 +40,7 @@ export const resetDb = async () => {
   await resetCartItem();
   await resetReview();
   await resetReply();
+  await resetReservation();
 };
 
 export const destroyDb = async () => {
