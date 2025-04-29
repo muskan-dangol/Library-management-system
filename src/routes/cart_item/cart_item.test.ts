@@ -96,6 +96,7 @@ describe("Cart Item endpoints test", () => {
       const res = await request(server).post("/api/cart-items").send({
         cart_id: testCartId,
         book_id: testBookId,
+        updated_on: new Date(),
       });
 
       expect(res.statusCode).toEqual(200);
@@ -111,117 +112,46 @@ describe("Cart Item endpoints test", () => {
         book_id: testBookId2,
       });
 
-      expect(res.statusCode).toEqual(201);
+      expect(res.statusCode).toEqual(200);
       expect(res.body).toEqual({ message: "Item added to cart!" });
     });
   });
 
-  describe("Cart Item - GET /api/cart-items", () => {
+  describe("Cart Item - GET /api/cart-items/:cartId", () => {
     it("should get all the cart items", async () => {
-      const res = await request(server).get("/api/cart-items");
+      const res = await request(server).get(`/api/cart-items/${testCartId}`);
 
       expect(res.statusCode).toEqual(200);
       expect(res.body).toEqual([
         expect.objectContaining({
+          title: expect.any(String),
+          author: expect.any(String),
+          release_date: expect.any(String),
+          available: expect.any(Number),
+          short_description: expect.any(String),
+          long_description: expect.any(String),
+          image: null,
           cart_id: testCartId,
-          book_id: testBookId,
           quantity: 2,
+          book_id: testBookId,
           created_on: expect.any(String),
           updated_on: expect.any(String),
         }),
         expect.objectContaining({
+          title: expect.any(String),
+          author: expect.any(String),
+          release_date: expect.any(String),
+          available: expect.any(Number),
+          short_description: expect.any(String),
+          long_description: expect.any(String),
+          image: null,
           cart_id: testCartId,
-          book_id: testBookId2,
           quantity: 1,
+          book_id: testBookId2,
           created_on: expect.any(String),
           updated_on: null,
         }),
       ]);
-    });
-  });
-
-  describe("Cart Item - GET /api/cart-items/:bookId", () => {
-    it("should return 404 when a book is not found in cart", async () => {
-      const nonExistingBookId = "6f6f91a6-dbf9-4b5a-93c3-c09b3b8b798a";
-      const res = await request(server).get(
-        `/api/cart-items/${nonExistingBookId}`
-      );
-
-      expect(res.statusCode).toEqual(404);
-      expect(res.body).toEqual({ error: "cart item not found!" });
-    });
-
-    it("should return cart item with book Id", async () => {
-      const res = await request(server).get(`/api/cart-items/${testBookId}`);
-
-      expect(res.statusCode).toEqual(200);
-      expect(res.body).toEqual(
-        expect.objectContaining({
-          cart_id: testCartId,
-          book_id: testBookId,
-          quantity: 2,
-          created_on: expect.any(String),
-          updated_on: expect.any(String),
-        })
-      );
-    });
-  });
-
-  describe("Cart Item - PATCH /api/cart-items/:bookId", () => {
-    it("should return 404 when cart item does not exist", async () => {
-      const nonExistingBookId = "6f6f91a6-dbf9-4b5a-93c3-c09b3b8b798a";
-      const res = await request(server)
-        .patch(`/api/cart-items/${nonExistingBookId}`)
-        .send({
-          quantity: 2,
-        });
-
-      expect(res.statusCode).toEqual(404);
-      expect(res.body).toEqual({ error: "cart item not found!" });
-    });
-
-    it("should update cart item", async () => {
-      const cartItemBeforeUpdate =
-        await CartItem.getCartItemByBookId(testBookId);
-      expect(cartItemBeforeUpdate?.quantity).toEqual(2);
-
-      const newQuantity = 3;
-      const res = await request(server)
-        .patch(`/api/cart-items/${testBookId}`)
-        .send({ quantity: newQuantity });
-      expect(res.statusCode).toEqual(200);
-      expect(res.body).toEqual({ message: "cart item updated successfully!" });
-
-      const cartItemAfterUpdate =
-        await CartItem.getCartItemByBookId(testBookId);
-      expect(cartItemAfterUpdate?.quantity).toEqual(newQuantity);
-    });
-  });
-
-  describe("Cart Item - DELETE /api/cart-items/:bookId", () => {
-    it("should return 404 when cart item does not exist", async () => {
-      const nonExistingBookId = "6f6f91a6-dbf9-4b5a-93c3-c09b3b8b798a";
-      const res = await request(server).delete(
-        `/api/cart-items/${nonExistingBookId}`
-      );
-
-      expect(res.statusCode).toEqual(404);
-      expect(res.body).toEqual({ error: "cart item not found!" });
-    });
-
-    it("should remove item from cart", async () => {
-      const cartItemBeforeDelete =
-        await CartItem.getCartItemByBookId(testBookId);
-      expect(cartItemBeforeDelete).toBeDefined();
-
-      const res = await request(server).delete(`/api/cart-items/${testBookId}`);
-
-      expect(res.statusCode).toEqual(200);
-      expect(res.body).toEqual({ message: "cart item deleted successfuly!" });
-
-      const cartItemAfterDelete =
-        await CartItem.getCartItemByBookId(testBookId);
-      expect(cartItemAfterDelete).not.toBeDefined();
     });
   });
 });

@@ -1,5 +1,6 @@
 import { Request, Response, NextFunction } from "express";
 import User from "../../models/users";
+import Cart from "../../models/carts";
 import { getHashedPassword } from "../../utils/passwordHelper";
 
 const getAllUsers = async (req: Request, res: Response, next: NextFunction) => {
@@ -55,12 +56,13 @@ const createUser = async (
 
     const hashedPassword = await getHashedPassword(password);
 
-    await User.createUser({
+    const [newUser] = await User.createUser({
       email,
       firstname,
       lastname,
       password: hashedPassword,
     });
+    await Cart.addCart(newUser.id);
 
     res.status(200).json({ data: "User created successfully!" });
   } catch (error) {
