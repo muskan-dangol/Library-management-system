@@ -31,7 +31,7 @@ const testBookPayload2 = {
   long_description: "This long description",
 };
 
-describe.only("Reservation endpoints test", () => {
+describe("Reservation endpoints test", () => {
   let testUserId: string;
   let testBookId: string;
   let testBookId2: string;
