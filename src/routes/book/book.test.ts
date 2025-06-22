@@ -139,6 +139,31 @@ describe("Book endpoints test", () => {
     });
   });
 
+  describe("Book - GET BookById /api/books/:userId", () => {
+    it("should return book with search keyword", async () => {
+      const searchKeyword = testBookPayload.author;
+      const res = await request(server).get(
+        `/api/books/search/${searchKeyword}`
+      );
+
+      expect(res.statusCode).toEqual(200);
+      expect(res.body).toHaveLength(1);
+      expect(res.body).toEqual([
+        expect.objectContaining({
+          id: testBookId,
+          title: testBookPayload.title,
+          author: testBookPayload.author,
+          release_date: expect.any(String),
+          available: testBookPayload.available,
+          short_description: testBookPayload.short_description,
+          long_description: testBookPayload.long_description,
+          image: null,
+          created_on: expect.any(String),
+        }),
+      ]);
+    });
+  });
+  
   describe("Book - PATCH /api/books/:userId", () => {
     it("should fail updating a book when a book does not exist", async () => {
       const nonExistingBookId = "123e4567-e89b-12d3-a456-426614174000";
@@ -224,7 +249,7 @@ describe("Book endpoints test", () => {
           book_id: expect.any(String),
           category_id: categoryId,
           name: testCategoryPayload.name,
-        })
+        }),
       ]);
     });
   });

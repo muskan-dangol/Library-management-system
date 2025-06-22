@@ -30,6 +30,22 @@ const getBookById = async (req: Request, res: Response, next: NextFunction) => {
   }
 };
 
+const searchBooksByTitleOrAuthor = async (
+  req: Request,
+  res: Response,
+  next: NextFunction
+) => {
+  try {
+    const { searchKeyword } = req.params;
+
+    const books = await Book.searchBooksByTitleOrAuthor(searchKeyword);
+
+    res.status(200).json(books);
+  } catch (error) {
+    next(error);
+  }
+};
+
 const addNewBook = async (
   req: Request,
   res: Response,
@@ -146,7 +162,7 @@ const getBooksByCategoryId = async (
       res.status(404).json({ error: "Category not found!" });
       return;
     }
-    
+
     const books = await Book.getBooksByCategoryId(categoryId);
     res.status(200).json(books);
   } catch (error) {
@@ -161,4 +177,5 @@ export {
   updateBookById,
   deleteBookById,
   getBooksByCategoryId,
+  searchBooksByTitleOrAuthor,
 };

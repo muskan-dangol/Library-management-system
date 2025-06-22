@@ -9,6 +9,17 @@ const getAllBooks = async (): Promise<BookType[]> => {
   return db("book").select("*");
 };
 
+const searchBooksByTitleOrAuthor = async (
+  searchKeyword: string
+): Promise<BookType[]> => {
+  const searchTerm = searchKeyword.trim();
+
+  return db("book")
+    .select("*")
+    .where("title", "like", `%${searchTerm}%`)
+    .orWhere("author", "like", `%${searchTerm}%`);
+};
+
 const getBookById = async (bookId: string): Promise<BookType | undefined> => {
   return db("book").where({ id: bookId }).first();
 };
@@ -55,6 +66,7 @@ export default {
   getAllBooks,
   getBookById,
   getBookByTitle,
+  searchBooksByTitleOrAuthor,
   updateBook,
   deleteBookById,
   getBooksByCategoryId,

@@ -33,7 +33,7 @@ const createUser = async (
   next: NextFunction
 ): Promise<void> => {
   try {
-    const { email, firstname, lastname, password } = req.body;
+    const { email, firstname, lastname, password, is_admin } = req.body;
 
     if (!(email && firstname && lastname && password)) {
       res.status(400).json({ error: "All fields are required" });
@@ -61,6 +61,7 @@ const createUser = async (
       firstname,
       lastname,
       password: hashedPassword,
+      is_admin,
     });
     await Cart.addCart(newUser.id);
 
