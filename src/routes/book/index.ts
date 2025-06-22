@@ -7,6 +7,7 @@ router.post("/", bookController.addNewBook);
 router.get("/", bookController.getAllBooks);
 router.post("/search", bookController.booksAfterSearchAndFilter);
 router.get("/:bookId", bookController.getBookById);
+router.get("/search/:searchKeyword", bookController.searchBooksByTitleOrAuthor);
 router.patch("/:bookId", bookController.updateBookById);
 router.delete("/:bookId", bookController.deleteBookById);
 router.get("/category/:categoryId", bookController.getBooksByCategoryId);
