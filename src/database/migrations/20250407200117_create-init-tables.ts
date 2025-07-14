@@ -79,8 +79,11 @@ export async function up(knex: Knex): Promise<void> {
       id UUID PRIMARY KEY DEFAULT uuid_generate_v4(),
       user_id UUID NOT NULL,
       book_id UUID NOT NULL,
-      start_date TIMESTAMPTZ(0),
-      end_date TIMESTAMPTZ(0),
+      cart_id UUID NOT NULL,
+      quantity INTEGER,
+      start_date TIMESTAMPTZ(0) NOT NULL DEFAULT NOW(),
+      end_date TIMESTAMPTZ(0) DEFAULT NOW() + INTERVAL '14 days',
+      return_date TIMESTAMPTZ(0),
       status TEXT,
       FOREIGN KEY (user_id) REFERENCES "user"(id) ON DELETE CASCADE,
       FOREIGN KEY (book_id) REFERENCES "book"(id) ON DELETE CASCADE
