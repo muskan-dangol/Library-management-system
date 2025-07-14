@@ -9,15 +9,63 @@ const getAllBooks = async (): Promise<BookType[]> => {
   return db("book").select("*");
 };
 
-const searchBooksByTitleOrAuthor = async (
-  searchKeyword: string
+const getBooksAfterSearchAndFilter = async (
+  filterCategories: string[] = [],
+  filterAuthors: string[] = [],
+  filterReleaseDate: number[] = [],
+  sortBy?: string,
+  searchKeyword?: string
 ): Promise<BookType[]> => {
-  const searchTerm = searchKeyword.trim();
+  const query = db("book").select("*");
 
-  return db("book")
-    .select("*")
-    .where("title", "like", `%${searchTerm}%`)
-    .orWhere("author", "like", `%${searchTerm}%`);
+  if (searchKeyword?.trim()) {
+    query.andWhere(function () {
+      this.where("title", "ilike", `%${searchKeyword}%`).orWhere(
+        "author",
+        "ilike",
+        `%${searchKeyword}%`
+      );
+    });
+  }
+
+  if (filterCategories && filterCategories.length > 0) {
+    const ids = filterCategories.flatMap((id: string) =>
+      id.split(",").map((a) => a.trim())
+    );
+    query
+      .join("book_category", "book.id", "book_category.book_id")
+      .join("category", "book_category.category_id", "category.id")
+      .whereIn("category.id", ids);
+  }
+
+  if (filterAuthors.length > 0) {
+    const normalizedAuthors = filterAuthors.flatMap((author) =>
+      author.split(",").map((a) => a.trim())
+    );
+    query.whereIn("author", normalizedAuthors);
+  }
+
+  if (filterReleaseDate.length === 2) {
+    query.whereBetween("release_date", [
+      new Date(`${filterReleaseDate[0]}-01-01`),
+      new Date(`${filterReleaseDate[1]}-12-31`),
+    ]);
+  }
+
+  const sortMap: Record<string, { column: string; order: "asc" | "desc" }> = {
+    title: { column: "title", order: "asc" },
+    "old-additions": { column: "release_date", order: "asc" },
+    "new-additions": { column: "release_date", order: "desc" },
+    "most-popular": { column: "popularity", order: "desc" },
+  };
+
+  const sort = sortMap[sortBy ?? ""];
+
+  if (sort) {
+    query.orderBy(sort.column, sort.order);
+  }
+
+  return query;
 };
 
 const getBookById = async (bookId: string): Promise<BookType | undefined> => {
@@ -66,7 +114,7 @@ export default {
   getAllBooks,
   getBookById,
   getBookByTitle,
-  searchBooksByTitleOrAuthor,
+  getBooksAfterSearchAndFilter,
   updateBook,
   deleteBookById,
   getBooksByCategoryId,
