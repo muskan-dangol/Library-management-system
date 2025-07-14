@@ -150,10 +150,10 @@ describe("Reservation endpoints test", () => {
     });
   });
 
-  describe("Reservation - GET /api/reservations/user/:userId", () => {
+  describe("Reservation - GET /api/reservations/users/:userId", () => {
     it("should return reservations made by user", async () => {
       const res = await request(server).get(
-        `/api/reservations/user/${testUserId}`
+        `/api/reservations/users/${testUserId}`
       );
 
       expect(res.statusCode).toEqual(200);
@@ -189,10 +189,10 @@ describe("Reservation endpoints test", () => {
     });
   });
 
-  describe("Reservation - GET /api/reservations/book/:bookId", () => {
+  describe("Reservation - GET /api/reservations/books/:bookId", () => {
     it("should return books reserved by bookId", async () => {
       const res = await request(server).get(
-        `/api/reservations/book/${testBookId}`
+        `/api/reservations/books/${testBookId}`
       );
 
       expect(res.statusCode).toEqual(200);
