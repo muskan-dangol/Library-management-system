@@ -30,6 +30,57 @@ const getBookById = async (req: Request, res: Response, next: NextFunction) => {
   }
 };
 
+const getBooksAfterSearchAndFilter = async (
+  req: Request,
+  res: Response,
+  next: NextFunction
+) => {
+  try {
+    const sortBy = req.query.sortBy as string;
+    const searchKeyword = req.query.searchKeyword as string;
+
+    const filterCategories = Array.isArray(req.query.filterCategories)
+      ? req.query.filterCategories.map(String)
+      : req.query.filterCategories
+        ? [String(req.query.filterCategories)]
+        : [];
+
+    const filterAuthors = Array.isArray(req.query.filterAuthors)
+      ? req.query.filterAuthors.map(String)
+      : req.query.filterAuthors
+        ? [String(req.query.filterAuthors)]
+        : [];
+
+    let filterReleaseDate: number[] = [];
+
+    if (req.query.filterReleaseDate) {
+      const raw = req.query.filterReleaseDate;
+
+      if (typeof raw === "string") {
+        filterReleaseDate = raw.split(",").map((year) => Number(year.trim()));
+      } else if (Array.isArray(raw)) {
+        filterReleaseDate = raw.map(Number);
+      }
+    }
+
+    if (filterReleaseDate.length !== 2 || filterReleaseDate.some(isNaN)) {
+      filterReleaseDate = [];
+    }
+
+    const books = await Book.getBooksAfterSearchAndFilter(
+      filterCategories,
+      filterAuthors,
+      filterReleaseDate,
+      sortBy,
+      searchKeyword
+    );
+
+    res.status(200).json(books);
+  } catch (error) {
+    next(error);
+  }
+};
+
 const addNewBook = async (
   req: Request,
   res: Response,
@@ -146,7 +197,7 @@ const getBooksByCategoryId = async (
       res.status(404).json({ error: "Category not found!" });
       return;
     }
-    
+
     const books = await Book.getBooksByCategoryId(categoryId);
     res.status(200).json(books);
   } catch (error) {
@@ -161,4 +212,5 @@ export {
   updateBookById,
   deleteBookById,
   getBooksByCategoryId,
+  getBooksAfterSearchAndFilter,
 };
