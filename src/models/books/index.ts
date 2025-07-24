@@ -9,7 +9,7 @@ const getAllBooks = async (): Promise<BookType[]> => {
   return db("book").select("*");
 };
 
-const getBooksAfterSearchAndFilter = async (
+const booksAfterSearchAndFilter = async (
   filterCategories: string[] = [],
   filterAuthors: string[] = [],
   filterReleaseDate: number[] = [],
@@ -62,7 +62,11 @@ const getBooksAfterSearchAndFilter = async (
   const sort = sortMap[sortBy ?? ""];
 
   if (sort) {
-    query.orderBy(sort.column, sort.order);
+    if (sort.column === "title") {
+      query.orderByRaw(`LOWER(??) ${sort.order}`, [sort.column]);
+    } else {
+      query.orderBy(sort.column, sort.order);
+    }
   }
 
   return query;
@@ -114,7 +118,7 @@ export default {
   getAllBooks,
   getBookById,
   getBookByTitle,
-  getBooksAfterSearchAndFilter,
+  booksAfterSearchAndFilter,
   updateBook,
   deleteBookById,
   getBooksByCategoryId,

@@ -30,44 +30,21 @@ const getBookById = async (req: Request, res: Response, next: NextFunction) => {
   }
 };
 
-const getBooksAfterSearchAndFilter = async (
+const booksAfterSearchAndFilter = async (
   req: Request,
   res: Response,
   next: NextFunction
 ) => {
   try {
-    const sortBy = req.query.sortBy as string;
-    const searchKeyword = req.query.searchKeyword as string;
+    const {
+      sortBy,
+      searchKeyword,
+      filterAuthors,
+      filterCategories,
+      filterReleaseDate,
+    } = req.body;
 
-    const filterCategories = Array.isArray(req.query.filterCategories)
-      ? req.query.filterCategories.map(String)
-      : req.query.filterCategories
-        ? [String(req.query.filterCategories)]
-        : [];
-
-    const filterAuthors = Array.isArray(req.query.filterAuthors)
-      ? req.query.filterAuthors.map(String)
-      : req.query.filterAuthors
-        ? [String(req.query.filterAuthors)]
-        : [];
-
-    let filterReleaseDate: number[] = [];
-
-    if (req.query.filterReleaseDate) {
-      const raw = req.query.filterReleaseDate;
-
-      if (typeof raw === "string") {
-        filterReleaseDate = raw.split(",").map((year) => Number(year.trim()));
-      } else if (Array.isArray(raw)) {
-        filterReleaseDate = raw.map(Number);
-      }
-    }
-
-    if (filterReleaseDate.length !== 2 || filterReleaseDate.some(isNaN)) {
-      filterReleaseDate = [];
-    }
-
-    const books = await Book.getBooksAfterSearchAndFilter(
+    const books = await Book.booksAfterSearchAndFilter(
       filterCategories,
       filterAuthors,
       filterReleaseDate,
@@ -212,5 +189,5 @@ export {
   updateBookById,
   deleteBookById,
   getBooksByCategoryId,
-  getBooksAfterSearchAndFilter,
+  booksAfterSearchAndFilter,
 };

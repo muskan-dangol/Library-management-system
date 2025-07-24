@@ -139,36 +139,25 @@ describe.only("Book endpoints test", () => {
     });
   });
 
-  describe("Book - GET BooksBySearchOrFilterKeyword /api/books/search", () => {
-    it("should return book with search keyword", async () => {
-      const searchKeyword = testBookPayload.author;
-      const res = await request(server).get(
-        `/api/books/search?searchKeyword=${searchKeyword}`
-      );
+  describe("Book - POST booksAfterSearchAndFilter /api/books/search", () => {
+    it("should return book in asc order", async () => {
+      const res = await request(server).post(`/api/books/search`).send({
+        sortBy: "title",
+      });
+
+      expect(res.statusCode).toEqual(200);
+      expect(res.body).toHaveLength(2);
+    });
+
+    it("should return book filtered by category", async () => {
+      const res = await request(server)
+        .post(`/api/books/search`)
+        .send({
+          filterCategories: [categoryId],
+        });
 
       expect(res.statusCode).toEqual(200);
       expect(res.body).toHaveLength(1);
-      expect(res.body).toEqual([
-        expect.objectContaining({
-          id: testBookId,
-          title: testBookPayload.title,
-          author: testBookPayload.author,
-          release_date: expect.any(String),
-          available: testBookPayload.available,
-          short_description: testBookPayload.short_description,
-          long_description: testBookPayload.long_description,
-          image: null,
-          created_on: expect.any(String),
-        }),
-      ]);
-    });
-
-    it("should return book with filter category", async () => {
-      const res = await request(server).get(
-        `/api/books/search?filterCategories=${categoryId}`
-      );
-
-      expect(res.statusCode).toEqual(200);
       expect(res.body).toEqual([
         {
           id: expect.any(String),
@@ -187,52 +176,61 @@ describe.only("Book endpoints test", () => {
       ]);
     });
 
-    it("should return book with filter author", async () => {
-      const res = await request(server).get(
-        `/api/books/search?filterAuthors=${testBookPayload.author}`
-      );
+    it("should return book filtered by author", async () => {
+      const res = await request(server)
+        .post(`/api/books/search`)
+        .send({
+          filterAuthors: [testBookPayload.author],
+        });
 
       expect(res.statusCode).toEqual(200);
-      expect(res.body[0].author).toBe(testBookPayload.author);
+      expect(res.body).toHaveLength(1);
+      expect(res.body).toEqual([
+        {
+          id: testBookId,
+          title: testBookPayload.title,
+          author: testBookPayload.author,
+          release_date: expect.any(String),
+          available: testBookPayload.available,
+          short_description: testBookPayload.short_description,
+          long_description: testBookPayload.long_description,
+          image: null,
+          created_on: expect.any(String),
+        },
+      ]);
     });
 
-    it("should return book with release date range filter", async () => {
-      const res = await request(server).get(
-        `/api/books/search?filterReleaseDate=2019,2021`
-      );
+    it("should return book filtered by release date", async () => {
+      const res = await request(server)
+        .post(`/api/books/search`)
+        .send({
+          filterReleaseDate: [1990, 2025],
+        });
 
       expect(res.statusCode).toEqual(200);
-      expect(res.body).toEqual(
-        expect.arrayContaining([
-          expect.objectContaining({
-            id: testBookId,
-          }),
-        ])
-      );
+      expect(res.body).toHaveLength(2);
     });
 
-    it("should return empty array for non-matching filters", async () => {
-      const res = await request(server).get(
-        `/api/books/search?filterAuthors=nonexistent-author`
-      );
+    it("should return book filtered by search keyword", async () => {
+      const res = await request(server).post(`/api/books/search`).send({
+        searchKeyword: "test",
+      });
 
       expect(res.statusCode).toEqual(200);
-      expect(res.body).toEqual([]);
-    });
-
-    it("should ignore invalid release date filter", async () => {
-      const res = await request(server).get(
-        `/api/books/search?filterReleaseDate=abc,xyz`
-      );
-
-      expect(res.statusCode).toEqual(200);
-      expect(res.body).toEqual(
-        expect.arrayContaining([
-          expect.objectContaining({
-            id: testBookId,
-          }),
-        ])
-      );
+      expect(res.body).toHaveLength(1);
+      expect(res.body).toEqual([
+        {
+          id: testBookId,
+          title: testBookPayload.title,
+          author: testBookPayload.author,
+          release_date: expect.any(String),
+          available: testBookPayload.available,
+          short_description: testBookPayload.short_description,
+          long_description: testBookPayload.long_description,
+          image: null,
+          created_on: expect.any(String),
+        },
+      ]);
     });
   });
 
