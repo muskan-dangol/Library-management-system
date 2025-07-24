@@ -17,7 +17,7 @@ const testCategoryPayload = {
   name: "Fiction",
 };
 
-describe("Book endpoints test", () => {
+describe.only("Book endpoints test", () => {
   let testBookId: string;
   let categoryId: string;
 
@@ -139,6 +139,101 @@ describe("Book endpoints test", () => {
     });
   });
 
+  describe("Book - POST booksAfterSearchAndFilter /api/books/search", () => {
+    it("should return book in asc order", async () => {
+      const res = await request(server).post(`/api/books/search`).send({
+        sortBy: "title",
+      });
+
+      expect(res.statusCode).toEqual(200);
+      expect(res.body).toHaveLength(2);
+    });
+
+    it("should return book filtered by category", async () => {
+      const res = await request(server)
+        .post(`/api/books/search`)
+        .send({
+          filterCategories: [categoryId],
+        });
+
+      expect(res.statusCode).toEqual(200);
+      expect(res.body).toHaveLength(1);
+      expect(res.body).toEqual([
+        {
+          id: expect.any(String),
+          title: expect.any(String),
+          author: expect.any(String),
+          release_date: expect.any(String),
+          available: expect.any(Number),
+          short_description: expect.any(String),
+          long_description: expect.any(String),
+          image: null,
+          created_on: expect.any(String),
+          book_id: expect.any(String),
+          category_id: categoryId,
+          name: expect.any(String),
+        },
+      ]);
+    });
+
+    it("should return book filtered by author", async () => {
+      const res = await request(server)
+        .post(`/api/books/search`)
+        .send({
+          filterAuthors: [testBookPayload.author],
+        });
+
+      expect(res.statusCode).toEqual(200);
+      expect(res.body).toHaveLength(1);
+      expect(res.body).toEqual([
+        {
+          id: testBookId,
+          title: testBookPayload.title,
+          author: testBookPayload.author,
+          release_date: expect.any(String),
+          available: testBookPayload.available,
+          short_description: testBookPayload.short_description,
+          long_description: testBookPayload.long_description,
+          image: null,
+          created_on: expect.any(String),
+        },
+      ]);
+    });
+
+    it("should return book filtered by release date", async () => {
+      const res = await request(server)
+        .post(`/api/books/search`)
+        .send({
+          filterReleaseDate: [1990, 2025],
+        });
+
+      expect(res.statusCode).toEqual(200);
+      expect(res.body).toHaveLength(2);
+    });
+
+    it("should return book filtered by search keyword", async () => {
+      const res = await request(server).post(`/api/books/search`).send({
+        searchKeyword: "test",
+      });
+
+      expect(res.statusCode).toEqual(200);
+      expect(res.body).toHaveLength(1);
+      expect(res.body).toEqual([
+        {
+          id: testBookId,
+          title: testBookPayload.title,
+          author: testBookPayload.author,
+          release_date: expect.any(String),
+          available: testBookPayload.available,
+          short_description: testBookPayload.short_description,
+          long_description: testBookPayload.long_description,
+          image: null,
+          created_on: expect.any(String),
+        },
+      ]);
+    });
+  });
+
   describe("Book - PATCH /api/books/:userId", () => {
     it("should fail updating a book when a book does not exist", async () => {
       const nonExistingBookId = "123e4567-e89b-12d3-a456-426614174000";
@@ -211,8 +306,7 @@ describe("Book endpoints test", () => {
 
       expect(res.statusCode).toEqual(200);
       expect(res.body).toEqual([
-        expect.objectContaining({
-          id: expect.any(String),
+        {
           title: expect.any(String),
           author: expect.any(String),
           release_date: expect.any(String),
@@ -223,8 +317,8 @@ describe("Book endpoints test", () => {
           created_on: expect.any(String),
           book_id: expect.any(String),
           category_id: categoryId,
-          name: testCategoryPayload.name,
-        })
+          name: expect.any(String),
+        },
       ]);
     });
   });

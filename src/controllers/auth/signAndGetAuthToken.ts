@@ -22,6 +22,7 @@ export const signAndGetAuthToken = (user: UserType) => {
   const authTokenPayload = {
     last_logged_in: format(new Date(), "yyyy-MM-dd HH:mm:ss"),
     token: token,
+    user: user
   };
   return authTokenPayload;
 };
