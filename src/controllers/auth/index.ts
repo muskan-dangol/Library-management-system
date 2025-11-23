@@ -15,7 +15,7 @@ const signup = async (
     { session: false },
     async (err: Error, data: boolean, info: { message?: string }) => {
       try {
-        const { email, password, firstname, lastname } = req.body;
+        const { email, password, firstname, lastname, is_admin } = req.body;
 
         if (err) {
           return res.status(500).json({ error: err });
@@ -45,6 +45,7 @@ const signup = async (
           password: hashedPassword,
           firstname,
           lastname,
+          is_admin,
         });
 
         const authTokenPayload = signAndGetAuthToken(user);
