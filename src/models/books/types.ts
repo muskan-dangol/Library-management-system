@@ -4,10 +4,7 @@ export interface BookType {
   author: string;
   release_date: string;
   available: number;
-  image: {
-    data: Buffer;
-    contentType: String;
-  };
+  image: string;
   short_description: string;
   long_description: string;
   created_on: Date;

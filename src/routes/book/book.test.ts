@@ -17,7 +17,7 @@ const testCategoryPayload = {
   name: "Fiction",
 };
 
-describe.only("Book endpoints test", () => {
+describe("Book endpoints test", () => {
   let testBookId: string;
   let categoryId: string;
 
@@ -139,7 +139,7 @@ describe.only("Book endpoints test", () => {
     });
   });
 
-  describe("Book - POST booksAfterSearchAndFilter /api/books/search", () => {
+  describe("Book - POST getBooksAfterSearchAndFilter /api/books/search", () => {
     it("should return book in asc order", async () => {
       const res = await request(server).post(`/api/books/search`).send({
         sortBy: "title",
@@ -232,6 +232,35 @@ describe.only("Book endpoints test", () => {
         },
       ]);
     });
+
+    it("should return book filtered by author and category and sort by title", async () => {
+      const res = await request(server)
+        .post(`/api/books/search`)
+        .send({
+          sortBy: "title",
+          filterAuthors: ["Muskan"],
+          filterCategories: [categoryId],
+        });
+
+      expect(res.statusCode).toEqual(200);
+      expect(res.body).toHaveLength(1);
+      expect(res.body).toEqual([
+        {
+          id: expect.any(String),
+          title: expect.any(String),
+          author: expect.any(String),
+          release_date: expect.any(String),
+          available: expect.any(Number),
+          short_description: expect.any(String),
+          long_description: expect.any(String),
+          image: null,
+          created_on: expect.any(String),
+          book_id: expect.any(String),
+          category_id: categoryId,
+          name: expect.any(String),
+        },
+      ]);
+    });
   });
 
   describe("Book - PATCH /api/books/:userId", () => {
@@ -306,7 +335,7 @@ describe.only("Book endpoints test", () => {
 
       expect(res.statusCode).toEqual(200);
       expect(res.body).toEqual([
-        {
+        expect.objectContaining({
           title: expect.any(String),
           author: expect.any(String),
           release_date: expect.any(String),
@@ -317,8 +346,8 @@ describe.only("Book endpoints test", () => {
           created_on: expect.any(String),
           book_id: expect.any(String),
           category_id: categoryId,
-          name: expect.any(String),
-        },
+          name: testCategoryPayload.name,
+        }),
       ]);
     });
   });

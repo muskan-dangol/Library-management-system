@@ -2,6 +2,7 @@ import { Request, Response, NextFunction } from "express";
 import Book from "../../models/books";
 import Category from "../../models/categories";
 import BookCategory from "../../models/book_catagories";
+import cloudinary from "../../cloudinary";
 
 const getAllBooks = async (req: Request, res: Response, next: NextFunction) => {
   try {
@@ -30,7 +31,7 @@ const getBookById = async (req: Request, res: Response, next: NextFunction) => {
   }
 };
 
-const booksAfterSearchAndFilter = async (
+const getBooksAfterSearchAndFilter = async (
   req: Request,
   res: Response,
   next: NextFunction
@@ -44,7 +45,7 @@ const booksAfterSearchAndFilter = async (
       filterReleaseDate,
     } = req.body;
 
-    const books = await Book.booksAfterSearchAndFilter(
+    const books = await Book.getBooksAfterSearchAndFilter(
       filterCategories,
       filterAuthors,
       filterReleaseDate,
@@ -65,6 +66,7 @@ const addNewBook = async (
 ): Promise<void> => {
   try {
     const { category_id, ...bookPayload } = req.body;
+    const image = req.file;
 
     const {
       title,
@@ -73,7 +75,6 @@ const addNewBook = async (
       available,
       short_description,
       long_description,
-      image,
     } = bookPayload;
 
     if (
@@ -90,7 +91,15 @@ const addNewBook = async (
       return;
     }
 
+    const uploadResult = await cloudinary.uploader.upload(
+      `data:${image?.mimetype};base64,${image?.buffer.toString("base64")}`,
+      {
+        folder: "book library",
+      }
+    );
+
     const bookTitleExists = await Book.getBookByTitle(title);
+
     if (bookTitleExists) {
       res.status(400).json({ error: "A book with this title already exists!" });
       return;
@@ -101,7 +110,7 @@ const addNewBook = async (
       author,
       release_date,
       available,
-      image,
+      image: uploadResult.secure_url,
       short_description,
       long_description,
     });
@@ -189,5 +198,5 @@ export {
   updateBookById,
   deleteBookById,
   getBooksByCategoryId,
-  booksAfterSearchAndFilter,
+  getBooksAfterSearchAndFilter,
 };

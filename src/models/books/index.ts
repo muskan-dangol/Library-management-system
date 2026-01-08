@@ -9,7 +9,7 @@ const getAllBooks = async (): Promise<BookType[]> => {
   return db("book").select("*");
 };
 
-const booksAfterSearchAndFilter = async (
+const getBooksAfterSearchAndFilter = async (
   filterCategories: string[] = [],
   filterAuthors: string[] = [],
   filterReleaseDate: number[] = [],
@@ -118,7 +118,7 @@ export default {
   getAllBooks,
   getBookById,
   getBookByTitle,
-  booksAfterSearchAndFilter,
+  getBooksAfterSearchAndFilter,
   updateBook,
   deleteBookById,
   getBooksByCategoryId,

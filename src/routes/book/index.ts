@@ -1,13 +1,17 @@
 import express from "express";
 import * as bookController from "../../controllers/books";
 
+import multer from "multer";
+
 const router = express.Router();
 
-router.post("/", bookController.addNewBook);
+const storage = multer.memoryStorage();
+const upload = multer({ storage: storage });
+
+router.post("/", upload.single("image"), bookController.addNewBook);
 router.get("/", bookController.getAllBooks);
-router.post("/search", bookController.booksAfterSearchAndFilter);
+router.post("/search", bookController.getBooksAfterSearchAndFilter);
 router.get("/:bookId", bookController.getBookById);
-router.get("/search/:searchKeyword", bookController.searchBooksByTitleOrAuthor);
 router.patch("/:bookId", bookController.updateBookById);
 router.delete("/:bookId", bookController.deleteBookById);
 router.get("/category/:categoryId", bookController.getBooksByCategoryId);
