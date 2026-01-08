@@ -27,10 +27,9 @@ const signup = async (
           });
         }
 
-        if (!(email && password)) {
-          return res.status(400).json({
-            error: "Missing credentials",
-          });
+        if (!(email && firstname && lastname && password)) {
+          res.status(400).json({ error: "All fields are required" });
+          return;
         }
 
         if (password.length < 8) {
@@ -41,7 +40,7 @@ const signup = async (
 
         const hashedPassword = await getHashedPassword(password);
 
-        const user = await User.createUser({
+        const [user] = await User.createUser({
           email,
           password: hashedPassword,
           firstname,
@@ -78,7 +77,7 @@ const login = async (
 
         const authTokenPayload = signAndGetAuthToken(user);
 
-        res.status(200).json({ token: authTokenPayload.token });
+        res.status(200).json(authTokenPayload);
       } catch (e) {
         console.error("Login error:", e);
         next(e);
