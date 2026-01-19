@@ -111,6 +111,7 @@ const addNewBook = async (
       release_date,
       available,
       image: uploadResult.secure_url,
+      image_public_id: uploadResult.public_id,
       short_description,
       long_description,
     });
@@ -163,6 +164,7 @@ const deleteBookById = async (
       return;
     }
     await Book.deleteBookById(bookId);
+    await cloudinary.uploader.destroy(bookExists.image_public_id);
     res.status(200).json({ date: "Book deleted successfully!" });
   } catch (error) {
     next(error);
