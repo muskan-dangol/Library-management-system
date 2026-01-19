@@ -47,9 +47,7 @@ const signup = async (
           lastname,
         });
 
-        const authTokenPayload = signAndGetAuthToken(user);
-
-        res.status(201).json({ token: authTokenPayload.token });
+        res.status(201).json(user);
       } catch (e) {
         console.error("Signup error:", e);
         next(e);

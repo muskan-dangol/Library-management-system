@@ -62,6 +62,7 @@ const createUser = async (
       lastname,
       password: hashedPassword,
     });
+    
     await Cart.addCart(newUser.id);
 
     res.status(200).json({ data: "User created successfully!" });

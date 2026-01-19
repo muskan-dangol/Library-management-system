@@ -2,6 +2,7 @@ import { Request, Response, NextFunction } from "express";
 import Book from "../../models/books";
 import Category from "../../models/categories";
 import BookCategory from "../../models/book_catagories";
+import cloudinary from "../../cloudinary";
 
 const getAllBooks = async (req: Request, res: Response, next: NextFunction) => {
   try {
@@ -30,6 +31,34 @@ const getBookById = async (req: Request, res: Response, next: NextFunction) => {
   }
 };
 
+const getBooksAfterSearchAndFilter = async (
+  req: Request,
+  res: Response,
+  next: NextFunction
+) => {
+  try {
+    const {
+      sortBy,
+      searchKeyword,
+      filterAuthors,
+      filterCategories,
+      filterReleaseDate,
+    } = req.body;
+
+    const books = await Book.getBooksAfterSearchAndFilter(
+      filterCategories,
+      filterAuthors,
+      filterReleaseDate,
+      sortBy,
+      searchKeyword
+    );
+
+    res.status(200).json(books);
+  } catch (error) {
+    next(error);
+  }
+};
+
 const addNewBook = async (
   req: Request,
   res: Response,
@@ -37,6 +66,7 @@ const addNewBook = async (
 ): Promise<void> => {
   try {
     const { category_id, ...bookPayload } = req.body;
+    const image = req.file;
 
     const {
       title,
@@ -45,7 +75,6 @@ const addNewBook = async (
       available,
       short_description,
       long_description,
-      image,
     } = bookPayload;
 
     if (
@@ -62,7 +91,15 @@ const addNewBook = async (
       return;
     }
 
+    const uploadResult = await cloudinary.uploader.upload(
+      `data:${image?.mimetype};base64,${image?.buffer.toString("base64")}`,
+      {
+        folder: "book library",
+      }
+    );
+
     const bookTitleExists = await Book.getBookByTitle(title);
+
     if (bookTitleExists) {
       res.status(400).json({ error: "A book with this title already exists!" });
       return;
@@ -73,7 +110,8 @@ const addNewBook = async (
       author,
       release_date,
       available,
-      image,
+      image: uploadResult.secure_url,
+      image_public_id: uploadResult.public_id,
       short_description,
       long_description,
     });
@@ -126,6 +164,7 @@ const deleteBookById = async (
       return;
     }
     await Book.deleteBookById(bookId);
+    await cloudinary.uploader.destroy(bookExists.image_public_id);
     res.status(200).json({ date: "Book deleted successfully!" });
   } catch (error) {
     next(error);
@@ -146,7 +185,7 @@ const getBooksByCategoryId = async (
       res.status(404).json({ error: "Category not found!" });
       return;
     }
-    
+
     const books = await Book.getBooksByCategoryId(categoryId);
     res.status(200).json(books);
   } catch (error) {
@@ -161,4 +200,5 @@ export {
   updateBookById,
   deleteBookById,
   getBooksByCategoryId,
+  getBooksAfterSearchAndFilter,
 };

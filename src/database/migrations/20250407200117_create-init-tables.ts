@@ -30,6 +30,7 @@ export async function up(knex: Knex): Promise<void> {
       short_description TEXT,
       long_description TEXT,
       image TEXT,
+      image_public_id TEXT,
       created_on TIMESTAMPTZ(0) NOT NULL DEFAULT NOW(),
       UNIQUE (title, image)
     );
